@@ -5,7 +5,7 @@ package decc;
  * @author nyradr
  *
  */
-class Communication {
+class Communication implements ICom{
 	
 	private String comid;	// communication comid
 	private String target;	// name of the targer
@@ -26,9 +26,7 @@ class Communication {
 		this.linked = false;
 	}
 	
-	/**
-	 * @return communication comid
-	 */
+	@Override
 	public String getComid(){
 		return comid;
 	}
@@ -52,6 +50,11 @@ class Communication {
 		return target;
 	}
 	
+	@Override
+	public String getTargetName() {
+		return target;
+	}
+	
 	/**
 	 * Génère un nouveau Comid
 	 * @param target String definissant la cible
@@ -61,4 +64,6 @@ class Communication {
 	public static String generateComid(String target, String from){
 		return target + from;
 	}
+
+	
 }
