@@ -73,4 +73,13 @@ class ComsList {
 	public List<Communication> getComs(){
 		return coms;
 	}
+
+	public ICom[] getIComs(){
+		ICom icl[] = new ICom[coms.size()];
+		
+		for(int i = 0; i < coms.size(); i++)
+			icl[i] = this.coms.get(i);
+		
+		return icl;
+	}
 }

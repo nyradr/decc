@@ -372,10 +372,18 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	}
 	
 	/**
-	 * Get all the ip of connected peer
+	 * Get all the ip of every connected peer
 	 * @return
 	 */
 	public String[] getIpPeer(){
 		return pairs.keySet().toArray(new String[0]);
+	}
+	
+	/**
+	 * Get all the ICom interface for every communication
+	 * @return
+	 */
+	public ICom[] getComs(){
+		return coms.getIComs();
 	}
 }
