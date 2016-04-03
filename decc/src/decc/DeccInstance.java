@@ -33,7 +33,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	private ComsList coms;				//current communications
 	private RoadList roads;				//current roads
 	
-	private IDecctUser userclb;			//callback for the user
+	private IDeccUser userclb;			//callback for the user
 	
 	/**
 	 * ctor
@@ -42,7 +42,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	 * @param clb callback
 	 * @throws IOException error when the socket is open
 	 */
-	public DeccInstance(int port, String name, IDecctUser clb) throws IOException{
+	public DeccInstance(int port, String name, IDeccUser clb) throws IOException{
 		this.name = name;
 		
 		this.serv = new ServerSocket(port);

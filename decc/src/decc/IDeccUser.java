@@ -4,7 +4,7 @@ package decc;
  * Interface for user of the Decc protocol
  * @author nyradr
  */
-public interface IDecctUser {
+public interface IDeccUser {
 	
 	/**
 	 * Produce when new peer connect
