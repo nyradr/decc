@@ -328,8 +328,8 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		if(!args.equals(ip) && pairs.size() < peerMax)
 			if(Math.random() >= 0.5){
 				try{
-					co = true;
 					connect(args);
+					co = true;
 				}catch(Exception e){}
 			}
 
