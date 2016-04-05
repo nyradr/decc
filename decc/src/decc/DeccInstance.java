@@ -380,6 +380,19 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	}
 	
 	/**
+	 * Disconnect a peer
+	 * @param host IP of the peer to disconnect
+	 * @return true if the peer exist
+	 */
+	public boolean disconnectPeer(String host){
+		Peer p = pairs.get(host);
+		if(p != null)
+			deco(p);
+		
+		return p != null;
+	}
+	
+	/**
 	 * Get all the ICom interface for every communication
 	 * @return
 	 */
