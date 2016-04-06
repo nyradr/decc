@@ -85,7 +85,6 @@ public class DeccInstance extends Thread implements IPeerReceive{
 			try {
 				p.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -398,5 +397,20 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	 */
 	public ICom[] getComs(){
 		return coms.getIComs();
+	}
+	
+	/**
+	 * Close conversations with this comid
+	 * @param comid comid to close
+	 * @return true if at least one conversation is found
+	 */
+	public boolean closeCom(String comid){
+		List<Communication> cmid = coms.getComid(comid);
+		boolean fnd = !cmid.isEmpty();
+		
+		for(Communication c : cmid)
+			coms.remove(c);
+		
+		return fnd;
 	}
 }

@@ -1,5 +1,7 @@
 package decc;
 
+import java.util.concurrent.LinkedBlockingDeque;
+
 /**
  * Represent a communication between 2 user
  * @author nyradr
@@ -24,6 +26,15 @@ class Communication implements ICom{
 		this.target = target;
 		this.peer = peer;
 		this.linked = false;
+	}
+	
+	/**
+	 * Close the communication<br>
+	 * Send ERoute message to the peer and set linked to false
+	 */
+	public void close(){
+		peer.sendEroute(comid);
+		linked = false;
 	}
 	
 	@Override
