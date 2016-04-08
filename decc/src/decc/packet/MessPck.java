@@ -58,6 +58,10 @@ public class MessPck extends Packet{
 		return this.comid;
 	}
 	
+	public int getCommand(){
+		return this.cmd;
+	}
+	
 	@Override
 	public String getPck(){
 		return this.comid + "\n" +  (char) cmd + this.data;
