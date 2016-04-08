@@ -8,13 +8,25 @@ package decc.packet;
 public class MessPck extends Packet{
 	
 	private String comid;
+	private int cmd;
 	private String data;
 	
-	public MessPck(String comid, String data){
+	/**
+	 * Create new message packet
+	 * @param comid comid of the conversation
+	 * @param cmd internal command
+	 * @param data data to send
+	 */
+	public MessPck(String comid, int cmd, String data){
 		this.comid = comid;
+		this.cmd = cmd;
 		this.data = data;
 	}
 	
+	/**
+	 * Extract message packet from string
+	 * @param data
+	 */
 	public MessPck(String data){
 		extract(data);
 	}
@@ -29,16 +41,22 @@ public class MessPck extends Packet{
 	
 	@Override
 	public String getPck(){
-		return this.comid + "\n" +  this.data;
+		return this.comid + "\n" +  (char) cmd + this.data;
 	}
 
 	@Override
 	public boolean extract(String args) {
-		int index = args.lastIndexOf("\n");
+		int index = args.indexOf("\n");
 		
-		if(index >= 0){
+		if(index >= 0 && args.length() >= index +2){
 			this.comid = args.substring(0, index);
-			this.data = args.substring(index +1);
+			
+			this.cmd = args.charAt(index +1);
+			try{
+				this.data = args.substring(index +2);
+			}catch (Exception e){
+				this.data = "";
+			}
 		}else
 			this.comid = data;
 		return false;
