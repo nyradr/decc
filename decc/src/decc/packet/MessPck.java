@@ -6,6 +6,14 @@ package decc.packet;
  *
  */
 public class MessPck extends Packet{
+	/**
+	 * No command
+	 */
+	private static final int CMD_NONE = 0;
+	/**
+	 * The Route command found his target
+	 */
+	private static final int CMD_CFND = 1;
 	
 	private String comid;
 	private int cmd;
@@ -14,7 +22,7 @@ public class MessPck extends Packet{
 	/**
 	 * Create new message packet
 	 * @param comid comid of the conversation
-	 * @param cmd internal command
+	 * @param cmd internal command, could be anythings but some values are reserved (see MessPck.CMD_ constants)
 	 * @param data data to send
 	 */
 	public MessPck(String comid, int cmd, String data){
