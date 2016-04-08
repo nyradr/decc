@@ -124,8 +124,9 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	/**
 	 * Create road to someone (if the target doesn't exist you will speak with nobody)
 	 * @param target
+	 * @return comid of the new road
 	 */
-	public void roadTo(String target){
+	public String roadTo(String target){
 		String comid = Communication.generateComid(target, this.name);
 		
 		for(Peer p : this.pairs.values()){
@@ -137,6 +138,8 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		}
 		
 		this.userclb.onNewCom(comid);
+		
+		return comid;
 	}
 
 	@Override
