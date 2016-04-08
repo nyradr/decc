@@ -225,7 +225,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 				if(this.coms.getComid(rpck.getComid()).isEmpty()){		//no coms with the comid
 					this.coms.add(new Communication(rpck.getComid(), rpck.getOri(), p));	//Add new conv
 					
-					MessPck mpck = new MessPck(rpck.getComid(), "reached");	//send arrival confirmation
+					MessPck mpck = new MessPck(rpck.getComid(), MessPck.CMD_CFND, "");	//send arrival confirmation
 					p.sendMess(mpck.getPck());
 					
 					this.userclb.onNewCom(rpck.getComid());	// to user
