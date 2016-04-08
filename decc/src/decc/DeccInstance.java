@@ -306,15 +306,23 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		MessPck mpck = new MessPck(args);
 		System.out.println("Routing message from " + p.getHostName() + " say " + mpck.getData());
 		
-		if(this.coms.getComid(mpck.getComid()).isEmpty()){
+		if(this.coms.getComid(mpck.getComid()).isEmpty()){	// not the target of this message, route it
 			List<Road> curroad = this.roads.getPeerComid(mpck.getComid(), p);
 			
 			if(!curroad.isEmpty())
 				curroad.get(0).roadFrom(p).sendMess(mpck.getPck());
 			else
 				System.out.println("Packet transmission error");
-		}else{
-			this.userclb.onMess(mpck.getComid(), mpck.getData());
+		}else{	// target reached
+			switch (mpck.getCommand()) {	// manage internal command
+			case MessPck.CMD_CFND:	// success road traced
+				this.userclb.onNewCom(mpck.getComid());
+				break;
+
+			default:	// no valid command : it's a normal message
+				this.userclb.onMess(mpck.getComid(), mpck.getData());
+				break;
+			}
 		}
 		
 	}
