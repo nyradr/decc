@@ -50,14 +50,26 @@ public class MessPck extends Packet{
 		extract(data);
 	}
 	
+	/**
+	 * Get message
+	 * @return
+	 */
 	public String getData(){
 		return this.data;
 	}
 	
+	/**
+	 * Get road COMID
+	 * @return
+	 */
 	public String getComid(){
 		return this.comid;
 	}
 	
+	/**
+	 * Get message internal command
+	 * @return
+	 */
 	public int getCommand(){
 		return this.cmd;
 	}

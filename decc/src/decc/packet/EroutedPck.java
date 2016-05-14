@@ -18,10 +18,18 @@ public class EroutedPck extends Packet{
 		extract(data);
 	}
 	
+	/**
+	 * Get route COMID
+	 * @return
+	 */
 	public String getComid(){
 		return comid;
 	}
 	
+	/**
+	 * Get flag
+	 * @return true means try to retrace the road
+	 */
 	public boolean getFlag(){
 		return flag;
 	}

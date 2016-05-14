@@ -21,15 +21,12 @@ public class RoadPck extends Packet{
 		this.dest = dest;
 	}
 	
+	@Override
 	public String getPck(){
 		return comid + "\n" + ori + "\n" + dest;
 	}
 	
-	/**
-	 * Extract road packet from String
-	 * @param args
-	 * @return false if extractions failed
-	 */
+	@Override
 	public boolean extract(String args){
 		String [] lines = new String[3];
 		int ilines = 0;
@@ -56,14 +53,26 @@ public class RoadPck extends Packet{
 		return ilines == 2;
 	}
 	
+	/**
+	 * Get road COMID
+	 * @return
+	 */
 	public String getComid(){
 		return comid;
 	}
 	
+	/**
+	 * Get road origin
+	 * @return
+	 */
 	public String getOri(){
 		return ori;
 	}
 	
+	/**
+	 * Get road target
+	 * @return
+	 */
 	public String getDest(){
 		return dest;
 	}
