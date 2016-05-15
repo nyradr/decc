@@ -4,6 +4,7 @@ package decc;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		this.name = name;
 		
 		this.serv = new ServerSocket(port);
+		serv.setSoTimeout(5000);
 		
 		this.pairs = new TreeMap<String, Peer>();
 		this.coms = new ComsList();
@@ -100,7 +102,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 				Socket sock = serv.accept();
 				Peer pair = new Peer(this, sock);
 				pairs.put(pair.getHostName(), pair);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			
@@ -113,7 +115,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 */
-	public void connect(String host) throws UnknownHostException, IOException{
+	public void connect(String host) throws UnknownHostException, IOException, SocketTimeoutException{
 		Peer pair = new Peer(this, host, this.port);
 		pairs.put(pair.getHostName(), pair);
 		

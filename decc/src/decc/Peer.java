@@ -3,7 +3,9 @@ package decc;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -18,6 +20,7 @@ class Peer extends Thread{
 	
 	private Socket sock;							//socket
 	private IPeerReceive callback;					//Callback to NetInstance when message received
+	private final int timeout = 5000;				// socket timeout
 	
 	private InputStream stegin;						//input stream
 	private OutputStream stegout;					//output stream
@@ -37,7 +40,7 @@ class Peer extends Thread{
 		System.out.println("Co du pair " + sock.getInetAddress().toString());
 		
 		this.sock = sock;
-		sock.setSoTimeout(60000);
+		sock.setSoTimeout(timeout);
 		this.callback = callback;
 		
 		this.sendIP();
@@ -58,8 +61,11 @@ class Peer extends Thread{
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 */
-	public Peer(IPeerReceive callback, String host, int port) throws UnknownHostException, IOException{
-		this.sock = new Socket(host, port);
+	public Peer(IPeerReceive callback, String host, int port) throws UnknownHostException, IOException, SocketTimeoutException{
+		this.sock = new Socket();
+		SocketAddress addr = new InetSocketAddress(host, port);
+		sock.connect(addr, timeout);
+		
 		this.sock.setTcpNoDelay(true);
 		
 		this.callback = callback;
