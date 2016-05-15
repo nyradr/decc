@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 /**
@@ -36,6 +37,7 @@ class Peer extends Thread{
 		System.out.println("Co du pair " + sock.getInetAddress().toString());
 		
 		this.sock = sock;
+		sock.setSoTimeout(60000);
 		this.callback = callback;
 		
 		this.sendIP();
@@ -89,7 +91,7 @@ class Peer extends Thread{
 					}else
 						this.recv += (char) data;
 				}
-			} catch (SocketException e){	// socket error : disconnected? 
+			} catch (SocketException | SocketTimeoutException e){	// socket error : disconnected?
 				e.printStackTrace();
 				isrunning = false;
 				callback.deco(this);
