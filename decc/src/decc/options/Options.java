@@ -6,8 +6,8 @@ package decc.options;
  */
 public abstract class Options {
 	
-	private int		maxpeer;	// number max of peer allowed
-	private int		maxRoads;	// number max of roads allowed
+	protected int		maxpeer;	// number max of peer allowed
+	protected int		maxRoads;	// number max of roads allowed
 	
 	/**
 	 * Get the maximal number of connected peers
