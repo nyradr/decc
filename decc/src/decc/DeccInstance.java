@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import decc.options.Options;
+import decc.options.OptionsBuilder;
 import decc.packet.EroutedPck;
 import decc.packet.MessPck;
 import decc.packet.RoadPck;
@@ -29,12 +31,12 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	private boolean isRunning;			//for the thread
 	
 	private Map<String, Peer> pairs;	//list of connected peers
-	private int peerMax = 42;
 	
 	private ComsList coms;				//current communications
 	private RoadList roads;				//current roads
 	
 	private IDeccUser userclb;			//callback for the user
+	private Options options;			//decc options
 	
 	/**
 	 * ctor
@@ -44,6 +46,8 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	 * @throws IOException error when the socket is open
 	 */
 	public DeccInstance(int port, String name, IDeccUser clb) throws IOException{
+		this.options = OptionsBuilder.getDefault();
+		
 		this.name = name;
 		
 		this.serv = new ServerSocket(port);
@@ -58,7 +62,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		this.userclb = clb;
 	}
 	
-	/** TODO
+	/**
 	 * Stop the decc instance<br>
 	 * Terminate all roads and communications
 	 */
@@ -100,8 +104,11 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		while(this.isRunning){
 			try {
 				Socket sock = serv.accept();
-				Peer pair = new Peer(this, sock);
-				pairs.put(pair.getHostName(), pair);
+				if(pairs.size() < options.maxPeers()){
+					Peer pair = new Peer(this, sock);
+					pairs.put(pair.getHostName(), pair);
+				}else
+					sock.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -337,7 +344,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	private void onBrcast(Peer p, String args){
 		boolean co = false;
 		
-		if(!args.equals(ip) && pairs.size() < peerMax)
+		if(!args.equals(ip) && pairs.size() < options.maxPeers())
 			if(Math.random() >= 0.5){
 				try{
 					connect(args);
