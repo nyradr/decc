@@ -87,19 +87,21 @@ class Peer extends Thread{
 				
 				int data = this.stegin.read();
 				
-				if(data != -1){ 
-					
+				if(data != -1){	
 					if(data == '\0'){
 						System.out.println("Recv(" + recv.length() + ") " + this.recv);	//debug
 						this.callback.received(this, this.recv);
 						this.recv = "";
 					}else
 						this.recv += (char) data;
-				}
+				}else	// end of stream == deco
+					callback.deco(this);
 			} catch (SocketException e){	// socket error : disconnected?
 				e.printStackTrace();
 				isrunning = false;
 				callback.deco(this);
+			} catch(SocketTimeoutException e){
+				
 			} catch (Exception e) {		//other error
 				e.printStackTrace();
 				this.recv = "";
@@ -114,7 +116,11 @@ class Peer extends Thread{
 	 */
 	public void close() throws IOException{
 		this.isrunning = false;
-		this.sock.close();
+		if(!sock.isClosed()){
+			this.stegin.close();
+			this.stegout.close();
+			this.sock.close();
+		}
 	}
 	
 	/**

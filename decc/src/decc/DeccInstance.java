@@ -133,6 +133,21 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	}
 	
 	/**
+	 * Disconnect a peer
+	 * @param host IP of the peer to disconnect
+	 * @return true if the peer exist
+	 */
+	public boolean disconnectPeer(String host){
+		Peer p = pairs.get(host);
+		
+		if(p != null){
+			deco(p);
+		}
+		
+		return p != null;
+	}
+	
+	/**
 	 * Create road to someone (if the target doesn't exist you will speak with nobody)
 	 * @param target
 	 * @return comid of the new road
@@ -195,7 +210,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	
 	@Override
 	public void deco(Peer p) {
-		System.out.println("Peer error : deco : " + p.getHostName());
+		System.out.println("Peer deco : " + p.getHostName());
 		
 		try {
 			p.close();
@@ -203,6 +218,8 @@ public class DeccInstance extends Thread implements IPeerReceive{
 			
 			for(Peer pe : pairs.values())	//one less, ten found : send broadcast
 				pe.sendBrcast(ip);
+			
+			userclb.onPeerDeco(p.getHostName());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -398,19 +415,6 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	 */
 	public String[] getIpPeer(){
 		return pairs.keySet().toArray(new String[0]);
-	}
-	
-	/**
-	 * Disconnect a peer
-	 * @param host IP of the peer to disconnect
-	 * @return true if the peer exist
-	 */
-	public boolean disconnectPeer(String host){
-		Peer p = pairs.get(host);
-		if(p != null)
-			deco(p);
-		
-		return p != null;
 	}
 	
 	/**
