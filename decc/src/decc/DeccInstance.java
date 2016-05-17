@@ -109,6 +109,8 @@ public class DeccInstance extends Thread implements IPeerReceive{
 					pairs.put(pair.getHostName(), pair);
 				}else
 					sock.close();
+			} catch (SocketTimeoutException te){
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -126,7 +128,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		Peer pair = new Peer(this, host, this.port);
 		pairs.put(pair.getHostName(), pair);
 		
-		if(pairs.size() == 1)
+		if(pairs.size() == 1 && ip != null)
 			pair.sendBrcast(ip);
 	}
 	

@@ -42,13 +42,12 @@ class Peer extends Thread{
 		this.sock = sock;
 		sock.setSoTimeout(timeout);
 		this.callback = callback;
-		
-		this.sendIP();
-		
 			
 		this.stegin = this.sock.getInputStream();
 		this.stegout = this.sock.getOutputStream();
-			
+		
+		this.sendIP();
+		
 		this.start();
 		
 	}
@@ -97,7 +96,7 @@ class Peer extends Thread{
 					}else
 						this.recv += (char) data;
 				}
-			} catch (SocketException | SocketTimeoutException e){	// socket error : disconnected?
+			} catch (SocketException e){	// socket error : disconnected?
 				e.printStackTrace();
 				isrunning = false;
 				callback.deco(this);
@@ -127,7 +126,7 @@ class Peer extends Thread{
 	}
 	
 	private void sendIP(){
-		send(Command.IP + getHostName());
+		send(Command.IP.toString() + getHostName());
 	}
 	
 	/**
