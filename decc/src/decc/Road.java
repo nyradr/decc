@@ -54,7 +54,7 @@ class Road {
 			return peerB;
 		
 		if(p == peerB)
-			return peerB;
+			return peerA;
 		
 		return null;
 	}
