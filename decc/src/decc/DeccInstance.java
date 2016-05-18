@@ -83,28 +83,6 @@ public class DeccInstance extends Thread implements IPeerReceive{
 			
 	}
 	
-	public void run(){
-		this.isRunning = true;
-		System.out.println("Start Server");
-		
-		while(this.isRunning){
-			try {
-				Socket sock = serv.accept();
-				if(pairs.size() < options.maxPeers()){
-					Peer pair = new Peer(this, sock);
-					pairs.put(pair.getHostName(), pair);
-					userclb.onNewPeer(pair.getHostName());
-				}else
-					sock.close();
-			} catch (SocketTimeoutException te){
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-		}
-	}
-	
 	/**
 	 * Try to connect to host
 	 * @param host IP or host name
@@ -188,6 +166,79 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		userclb.onComEnd(comid);
 		
 		return fnd;
+	}
+	
+	/**
+	 * Send a message to the comid
+	 * @param comid
+	 * @param data
+	 */
+	public void send(String comid, String data){
+		MessPck mpck = new MessPck(comid, data);
+		
+		for(Communication c : this.coms.getComid(comid)){
+			c.getPeer().sendMess(mpck.getPck());
+		}
+	}
+
+	/**
+	 * Define the name
+	 * @param name
+	 */
+	public void setname(String name){
+		this.name = name;
+	}
+	
+	/**
+	 * Get all the ip of every connected peer
+	 * @return
+	 */
+	public String[] getIpPeer(){
+		return pairs.keySet().toArray(new String[0]);
+	}
+	
+	/**
+	 * Get all the ICom interface for every communication
+	 * @return
+	 */
+	public ICom[] getComs(){
+		return coms.getIComs();
+	}
+	
+	/**
+	 * Get communication
+	 * @param comid communication comid
+	 * @return ICom or null
+	 */
+	public ICom getComByComid(String comid){
+		List<Communication> cms = coms.getComid(comid);
+		
+		if(!cms.isEmpty())
+			return cms.get(0);
+		
+		return null;
+	}
+	
+	public void run(){
+		this.isRunning = true;
+		System.out.println("Start Server");
+		
+		while(this.isRunning){
+			try {
+				Socket sock = serv.accept();
+				if(pairs.size() < options.maxPeers()){
+					Peer pair = new Peer(this, sock);
+					pairs.put(pair.getHostName(), pair);
+					userclb.onNewPeer(pair.getHostName());
+				}else
+					sock.close();
+			} catch (SocketTimeoutException te){
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
 	}
 
 	@Override
@@ -401,66 +452,6 @@ public class DeccInstance extends Thread implements IPeerReceive{
 				if(p != pe)
 					pe.sendBrcast(args);
 		}
-	}
-	
-	/**
-	 * Send a message to the comid
-	 * @param comid
-	 * @param data
-	 */
-	public void send(String comid, String data){
-		MessPck mpck = new MessPck(comid, data);
-		
-		for(Communication c : this.coms.getComid(comid)){
-			c.getPeer().sendMess(mpck.getPck());
-		}
-	}
-	
-	/**
-	 * Send message to all
-	 * @param mess
-	 */
-	public void send(String mess){
-		for(Peer p : this.pairs.values())
-			p.send(mess);
-	}
-
-	/**
-	 * Define the name
-	 * @param name
-	 */
-	public void setname(String name){
-		this.name = name;
-	}
-	
-	/**
-	 * Get all the ip of every connected peer
-	 * @return
-	 */
-	public String[] getIpPeer(){
-		return pairs.keySet().toArray(new String[0]);
-	}
-	
-	/**
-	 * Get all the ICom interface for every communication
-	 * @return
-	 */
-	public ICom[] getComs(){
-		return coms.getIComs();
-	}
-	
-	/**
-	 * Get communication
-	 * @param comid communication comid
-	 * @return ICom or null
-	 */
-	public ICom getComByComid(String comid){
-		List<Communication> cms = coms.getComid(comid);
-		
-		if(!cms.isEmpty())
-			return cms.get(0);
-		
-		return null;
 	}
 	
 }
