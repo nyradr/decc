@@ -67,8 +67,8 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	 * Terminate all roads and communications
 	 */
 	public void close(){
-		//TODO close roads
 		
+		// close server
 		try {
 			isRunning = false;
 			serv.close();
@@ -76,23 +76,9 @@ public class DeccInstance extends Thread implements IPeerReceive{
 			e.printStackTrace();
 		}
 		
-		for (Communication c : coms.getComs()){
-			c.getPeer().sendEroute(c.getComid());
-			coms.remove(c);
-		}
-		
-		for (Road r : roads.getRoads()){
-			r.peerA.sendEroutePdc((new EroutedPck(r.getComid(), true)).getPck());
-			r.peerB.sendEroutePdc((new EroutedPck(r.getComid(), false)).getPck());
-			roads.remove(r);
-		}
-		
+		// disconnect all peer
 		for(Peer p : pairs.values()){
-			try {
-				p.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			disconnectPeer(p.getHostName());
 		}
 			
 	}
@@ -107,6 +93,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 				if(pairs.size() < options.maxPeers()){
 					Peer pair = new Peer(this, sock);
 					pairs.put(pair.getHostName(), pair);
+					userclb.onNewPeer(pair.getHostName());
 				}else
 					sock.close();
 			} catch (SocketTimeoutException te){
@@ -141,7 +128,25 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		Peer p = pairs.get(host);
 		
 		if(p != null){
-			deco(p);
+			// abort all roads passing by this peer
+			for(Road r : roads.getPeer(p)){
+				r.peerA.sendEroutePdc((new EroutedPck(r.getComid(), true)).getPck());
+				r.peerB.sendEroutePdc((new EroutedPck(r.getComid(), false)).getPck());
+				roads.remove(r);
+			}
+			
+			// close all roads passing through this peer
+			// TODO : retrace roads if needed
+			for(Communication c : coms.getPeer(p)){
+				c.close();
+				coms.remove(c);
+			}
+			
+			try {
+				p.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		return p != null;
@@ -163,9 +168,26 @@ public class DeccInstance extends Thread implements IPeerReceive{
 			this.coms.add(com);
 		}
 		
-		this.userclb.onNewCom(comid);
-		
 		return comid;
+	}
+	
+	/**
+	 * Close conversations with this comid
+	 * @param comid comid to close
+	 * @return true if at least one conversation is found
+	 */
+	public boolean closeCom(String comid){
+		List<Communication> cmid = coms.getComid(comid);
+		boolean fnd = !cmid.isEmpty();
+		
+		for(Communication c : cmid){
+			c.close();
+			coms.remove(c);
+		}
+		
+		userclb.onComEnd(comid);
+		
+		return fnd;
 	}
 
 	@Override
@@ -216,8 +238,10 @@ public class DeccInstance extends Thread implements IPeerReceive{
 			p.close();
 			pairs.remove(p.getHostName());
 			
-			for(Peer pe : pairs.values())	//one less, ten found : send broadcast
-				pe.sendBrcast(ip);
+			if(ip != null){
+				for(Peer pe : pairs.values())	//one less, ten found : send broadcast
+					pe.sendBrcast(ip);
+			}
 			
 			userclb.onPeerDeco(p.getHostName());
 		} catch (IOException e) {
@@ -426,17 +450,17 @@ public class DeccInstance extends Thread implements IPeerReceive{
 	}
 	
 	/**
-	 * Close conversations with this comid
-	 * @param comid comid to close
-	 * @return true if at least one conversation is found
+	 * Get communication
+	 * @param comid communication comid
+	 * @return ICom or null
 	 */
-	public boolean closeCom(String comid){
-		List<Communication> cmid = coms.getComid(comid);
-		boolean fnd = !cmid.isEmpty();
+	public ICom getComByComid(String comid){
+		List<Communication> cms = coms.getComid(comid);
 		
-		for(Communication c : cmid)
-			coms.remove(c);
+		if(!cms.isEmpty())
+			return cms.get(0);
 		
-		return fnd;
+		return null;
 	}
+	
 }
