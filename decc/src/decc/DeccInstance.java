@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -113,13 +114,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				roads.remove(r);
 			}
 			
-			// close all roads passing through this peer
-			// TODO : retrace roads if needed
-			for(Communication c : coms.getPeer(p)){
-				c.close();
-				coms.remove(c);
-			}
-			
 			try {
 				p.close();
 			} catch (IOException e) {
@@ -134,7 +128,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	public String startCom(String target){
 		String comid = Communication.generateComid(target, this.name);
 		
-		for(Peer p : this.pairs.values()){
+		for(Peer p : pairs.values()){
 			Communication com = new Communication(comid, target, p);
 			RoadPck rpck = new RoadPck(comid, this.name, target);
 			
@@ -185,7 +179,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	public ICom[] getComs(){
 		return coms.getIComs();
 	}
-	
 	
 	@Override
 	public ICom getCom(String comid){
@@ -277,6 +270,23 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			p.close();
 			pairs.remove(p.getHostName());
 			
+			// clean roads passing through this peer
+			// just in case of dirty disconnection without peer cleanup
+			for(Road r : roads.getPeer(p)){
+				r.roadFrom(p).sendEroutePdc(new EroutedPck(r.getComid(), true).toString());
+				roads.remove(r);
+			}
+			
+			// close all roads passing through this peer
+			for(Communication c : coms.getPeer(p)){
+				coms.remove(c);
+				// try to retrace the road
+				if(!pairs.isEmpty())
+					startCom(c.getTarget());
+				else
+					userclb.onComEnd(c.getComid());
+			}
+			
 			if(ip != null){
 				for(Peer pe : pairs.values())	//one less, ten found : send broadcast
 					pe.sendBrcast(ip);
@@ -288,7 +298,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		}
 		
 	}
-	
 	
 	/**
 	 * Produce when ip message is received
@@ -383,8 +392,14 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				coms.remove(c);												// remove it from the coms (invalid road -> com)
 			}
 			
-			if(erpck.getFlag())
-				startCom(target);			//retrace new road to the target
+			if(erpck.getFlag() && !target.isEmpty()){
+				//try to retrace new road to the target
+				if(!pairs.isEmpty())
+					startCom(target);
+				else
+					userclb.onComEnd(erpck.getComid());
+			}
+				
 		}
 	}
 	
