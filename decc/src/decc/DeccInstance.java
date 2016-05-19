@@ -15,12 +15,15 @@ import decc.options.OptionsBuilder;
 import decc.packet.EroutedPck;
 import decc.packet.MessPck;
 import decc.packet.RoadPck;
+import decc.ui.ICom;
+import decc.ui.IDecc;
+import decc.ui.IDeccUser;
 
 /**
- * Instance of the decc protocol
+ * Instance of the decc protocol<br>
  * @author nyradr
  */
-public class DeccInstance extends Thread implements IPeerReceive, IDecc{
+class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	
 	private ServerSocket serv;			// serveur
 	private int port;					// port

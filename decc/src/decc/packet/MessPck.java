@@ -9,11 +9,11 @@ public class MessPck extends Packet{
 	/**
 	 * No command
 	 */
-	public static final int CMD_NONE = 0;
+	public static final int CMD_NONE = 0x01;
 	/**
 	 * The Route command found his target
 	 */
-	public static final int CMD_CFND = 1;
+	public static final int CMD_CFND = 0x02;
 	
 	private String comid;
 	private int cmd;

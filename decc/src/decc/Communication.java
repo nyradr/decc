@@ -2,6 +2,8 @@ package decc;
 
 import java.util.concurrent.LinkedBlockingDeque;
 
+import decc.ui.ICom;
+
 /**
  * Represent a communication between 2 user
  * @author nyradr

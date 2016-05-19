@@ -1,4 +1,4 @@
-package decc;
+package decc.ui;
 
 /**
  * Interface for user of the Decc protocol

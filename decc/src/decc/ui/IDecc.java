@@ -1,4 +1,4 @@
-package decc;
+package decc.ui;
 
 /**
  * User available functions for DECC

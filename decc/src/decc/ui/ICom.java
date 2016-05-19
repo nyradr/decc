@@ -1,4 +1,4 @@
-package decc;
+package decc.ui;
 
 /**
  * Interface for getting informations on a communication
