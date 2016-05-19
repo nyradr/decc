@@ -20,7 +20,7 @@ import decc.packet.RoadPck;
  * Instance of the decc protocol
  * @author nyradr
  */
-public class DeccInstance extends Thread implements IPeerReceive{
+public class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	
 	private ServerSocket serv;			// serveur
 	private int port;					// port
@@ -62,10 +62,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		this.userclb = clb;
 	}
 	
-	/**
-	 * Stop the decc instance<br>
-	 * Terminate all roads and communications
-	 */
+	@Override
 	public void close(){
 		
 		// close server
@@ -78,31 +75,28 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		
 		// disconnect all peer
 		for(Peer p : pairs.values()){
-			disconnectPeer(p.getHostName());
+			disconnect(p.getHostName());
 		}
 			
 	}
 	
-	/**
-	 * Try to connect to host
-	 * @param host IP or host name
-	 * @throws UnknownHostException
-	 * @throws IOException
-	 */
-	public void connect(String host) throws UnknownHostException, IOException, SocketTimeoutException{
-		Peer pair = new Peer(this, host, this.port);
-		pairs.put(pair.getHostName(), pair);
+	@Override
+	public boolean connect(String host){ //throws UnknownHostException, IOException, SocketTimeoutException{
+		try{
+			Peer pair = new Peer(this, host, this.port);
+			pairs.put(pair.getHostName(), pair);
 		
-		if(pairs.size() == 1 && ip != null)
-			pair.sendBrcast(ip);
+			if(pairs.size() == 1 && ip != null)
+				pair.sendBrcast(ip);
+			
+			return true;
+		} catch(Exception e){}
+		
+		return false;
 	}
 	
-	/**
-	 * Disconnect a peer
-	 * @param host IP of the peer to disconnect
-	 * @return true if the peer exist
-	 */
-	public boolean disconnectPeer(String host){
+	@Override
+	public boolean disconnect(String host){
 		Peer p = pairs.get(host);
 		
 		if(p != null){
@@ -130,12 +124,8 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		return p != null;
 	}
 	
-	/**
-	 * Create road to someone (if the target doesn't exist you will speak with nobody)
-	 * @param target
-	 * @return comid of the new road
-	 */
-	public String roadTo(String target){
+	@Override
+	public String startCom(String target){
 		String comid = Communication.generateComid(target, this.name);
 		
 		for(Peer p : this.pairs.values()){
@@ -149,11 +139,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		return comid;
 	}
 	
-	/**
-	 * Close conversations with this comid
-	 * @param comid comid to close
-	 * @return true if at least one conversation is found
-	 */
+	@Override
 	public boolean closeCom(String comid){
 		List<Communication> cmid = coms.getComid(comid);
 		boolean fnd = !cmid.isEmpty();
@@ -168,55 +154,46 @@ public class DeccInstance extends Thread implements IPeerReceive{
 		return fnd;
 	}
 	
-	/**
-	 * Send a message to the comid
-	 * @param comid
-	 * @param data
-	 */
-	public void send(String comid, String data){
+	@Override
+	public boolean sendTo(String comid, String data){
 		MessPck mpck = new MessPck(comid, data);
 		
 		for(Communication c : this.coms.getComid(comid)){
 			c.getPeer().sendMess(mpck.getPck());
 		}
+		
+		return true;
 	}
 
-	/**
-	 * Define the name
-	 * @param name
-	 */
+	@Override
 	public void setname(String name){
 		this.name = name;
 	}
 	
-	/**
-	 * Get all the ip of every connected peer
-	 * @return
-	 */
-	public String[] getIpPeer(){
+	@Override
+	public String[] getConnectedHosts(){
 		return pairs.keySet().toArray(new String[0]);
 	}
 	
-	/**
-	 * Get all the ICom interface for every communication
-	 * @return
-	 */
+	@Override
 	public ICom[] getComs(){
 		return coms.getIComs();
 	}
 	
-	/**
-	 * Get communication
-	 * @param comid communication comid
-	 * @return ICom or null
-	 */
-	public ICom getComByComid(String comid){
+	
+	@Override
+	public ICom getCom(String comid){
 		List<Communication> cms = coms.getComid(comid);
 		
 		if(!cms.isEmpty())
 			return cms.get(0);
 		
 		return null;
+	}
+	
+	@Override
+	public String[] getRoadsComid(){
+		return roads.roads.toArray(new String[0]);
 	}
 	
 	public void run(){
@@ -395,7 +372,7 @@ public class DeccInstance extends Thread implements IPeerReceive{
 			}
 			
 			if(erpck.getFlag())
-				roadTo(target);			//retrace new road to the target
+				startCom(target);			//retrace new road to the target
 		}
 	}
 	

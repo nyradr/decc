@@ -55,7 +55,7 @@ public interface IDecc {
 	 * Set peer name
 	 * @param name new peer name
 	 */
-	public void setName(String name);
+	public void setname(String name);
 	
 	/**
 	 * Get the host name of all connected peers.
