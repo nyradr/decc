@@ -31,12 +31,11 @@ class ComsList {
 	
 	/**
 	 * Remove communication<br>
-	 * The the communication if linked to the peer
+	 * The communication is not closed
 	 * @param c communication instance
 	 */
 	public void remove(Communication c){
-		if(c.isLinked())
-			c.close();
+		c.close();
 		this.coms.remove(c);
 	}
 	

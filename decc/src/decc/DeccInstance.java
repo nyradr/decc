@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import decc.options.Options;
 import decc.options.OptionsBuilder;
@@ -64,6 +65,8 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		
 		this.userclb = clb;
 	}
+	
+	/// IDecc
 	
 	@Override
 	public void close(){
@@ -187,6 +190,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	@Override
 	public ICom getCom(String comid){
 		List<Communication> cms = coms.getComid(comid);
+		cms = cms.stream().filter(x -> x.isLinked()).collect(Collectors.toList());
 		
 		if(!cms.isEmpty())
 			return cms.get(0);
@@ -198,6 +202,8 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	public String[] getRoadsComid(){
 		return roads.roads.toArray(new String[0]);
 	}
+	
+	/// DeccInstance functions
 	
 	public void run(){
 		this.isRunning = true;
@@ -220,7 +226,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			
 		}
 	}
-
+	
+	/// IPeer receive
+	
 	@Override
 	public void received(Peer p, String m) {
 		System.out.println(p.getHostName() + " : " + m);
@@ -280,6 +288,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		}
 		
 	}
+	
 	
 	/**
 	 * Produce when ip message is received
@@ -399,6 +408,16 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		}else{	// target reached
 			switch (mpck.getCommand()) {	// manage internal command
 			case MessPck.CMD_CFND:	// success road traced
+				
+				// remove all traced roads for this COMID
+				// set road as linked
+				for(Communication com : coms.getComs())
+					if(com.getPeer() != p){
+						com.close();
+						coms.remove(com);
+					}else
+						com.setLinked(true);
+				
 				this.userclb.onNewCom(mpck.getComid());
 				break;
 

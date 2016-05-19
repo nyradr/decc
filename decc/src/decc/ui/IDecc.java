@@ -75,7 +75,7 @@ public interface IDecc {
 	public ICom[] getComs();
 	
 	/**
-	 * Get communication by COMID
+	 * Get communication by COMID only if the target is reached
 	 * @param comid communication COMID
 	 * @return communication interface or null
 	 */
