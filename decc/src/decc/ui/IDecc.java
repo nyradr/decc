@@ -7,6 +7,11 @@ package decc.ui;
 public interface IDecc {
 	
 	/**
+	 * Start DECC.
+	 */
+	public void start();
+	
+	/**
 	 * Stop the DECC instance<br>
 	 * Terminate all roads and communications
 	 */
