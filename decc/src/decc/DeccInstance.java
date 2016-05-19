@@ -80,6 +80,13 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			e.printStackTrace();
 		}
 		
+		// close communications
+		List<Communication> com = coms.getComs();
+		for(Communication c : com){
+			c.close();
+			userclb.onComEnd(c.getComid());
+		}
+		
 		// disconnect all peer
 		for(Peer p : pairs.values()){
 			disconnect(p.getHostName());
@@ -324,7 +331,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			if(rpck.getDest().equals(this.name)){
 				
 				if(this.coms.getComid(rpck.getComid()).isEmpty()){		//no coms with the comid
-					this.coms.add(new Communication(rpck.getComid(), rpck.getOri(), p));	//Add new conv
+					Communication com = new Communication(rpck.getComid(), rpck.getOri(), p);
+					com.setLinked(true);
+					this.coms.add(com);	//Add new conv
 					
 					MessPck mpck = new MessPck(rpck.getComid(), MessPck.CMD_CFND, "");	//send arrival confirmation
 					p.sendMess(mpck.getPck());

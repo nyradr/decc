@@ -35,7 +35,6 @@ class ComsList {
 	 * @param c communication instance
 	 */
 	public void remove(Communication c){
-		c.close();
 		this.coms.remove(c);
 	}
 	
