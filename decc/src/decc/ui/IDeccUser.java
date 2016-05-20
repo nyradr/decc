@@ -31,6 +31,13 @@ public interface IDeccUser {
 	public void onComEnd(String comid);
 	
 	/**
+	 * Produce when the target is impossible to reach
+	 * @param comid communication COMID
+	 * @param target target name
+	 */
+	public void onComFail(String comid, String target);
+	
+	/**
 	 * Produce when new road pass through you
 	 * @param comid	conversation comid
 	 * @param hosta A peer

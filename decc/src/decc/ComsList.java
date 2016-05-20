@@ -39,6 +39,15 @@ class ComsList {
 	}
 	
 	/**
+	 * Return true if the communication is linked
+	 * @param comid
+	 * @return
+	 */
+	public boolean isComidLinked(String comid){
+		return getComid(comid).stream().filter(x -> x.isLinked()).count() > 0;
+	}
+	
+	/**
 	 * Search for the communications with the comid
 	 * @param comid comid to search
 	 * @return

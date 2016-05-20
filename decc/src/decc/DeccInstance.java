@@ -143,6 +143,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			this.coms.add(com);
 		}
 		
+		if(pairs.isEmpty())
+			userclb.onComFail(comid, target);
+		
 		return comid;
 	}
 	
@@ -263,7 +266,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			
 		default:
 			System.out.println("Unknow packet receveid from " + p.getHostName() + " with " + m);
-			
 			break;
 		}
 		
@@ -326,8 +328,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		System.out.println("Try to trace road from " + p.getHostName() + " with comid " + rpck.getComid() + " ori " + rpck.getOri() + " dest " + rpck.getDest());
 		
 		
-		if(this.roads.getComid(rpck.getComid()).isEmpty()){			//no road with the comid
-			
+		if(this.roads.getComid(rpck.getComid()).isEmpty() &&
+			coms.getComid(rpck.getComid()).isEmpty()){			
+			//no road with the comid
 			if(rpck.getDest().equals(this.name)){
 				
 				if(this.coms.getComid(rpck.getComid()).isEmpty()){		//no coms with the comid
@@ -342,12 +345,17 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				}else
 					p.sendEroute(rpck.getComid());
 			}else{
-				for(Peer peer : this.pairs.values())	//transmission to all
+				//transmission to all
+				for(Peer peer : this.pairs.values())	
 					if(peer != p){
 						this.roads.add(new Road(rpck.getComid(), p, peer));
 						peer.sendRoute(rpck.getPck());
 						this.userclb.onNewRoad(rpck.getComid(), p.getHostName(), peer.getHostName());
 					}
+				
+				// only one peer : no transmission possible : send ERoute
+				if(this.pairs.size() == 1)
+					p.sendEroute(rpck.getComid());
 			}
 		}else			// already pass by this peer, abortion of the road
 			p.sendEroute(rpck.getComid());
@@ -371,13 +379,20 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			
 			this.roads.remove(this.roads.getPeerComid(args, p).get(0));		//remove the road
 		}else{																//no roads exist, check coms
+			// remove communication
 			List<Communication> curcom = this.coms.getPeerComid(args, p);
-			if(!curcom.isEmpty())
-				this.coms.remove(curcom.get(0));
+			boolean islinked = this.coms.isComidLinked(args);
+			String target = "";
 			
-			if(this.coms.getComid(args).isEmpty()){
-				this.userclb.onComEnd(args);
+			if(!curcom.isEmpty()){
+				target = curcom.get(0).getTarget();
+				this.coms.remove(curcom.get(0));
 			}
+			
+			if(this.coms.getComid(args).isEmpty() && islinked){
+				this.userclb.onComEnd(args);
+			}else
+				this.userclb.onComFail(args, target);
 		}
 	}
 	
@@ -461,8 +476,8 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	private void onBrcast(Peer p, String args){
 		boolean co = false;
 		
-		if(!args.equals(ip) && pairs.size() < options.maxPeers())
-			if(Math.random() >= 0.5){
+		if(!args.equals(ip) && pairs.size() < options.maxPeers() && !pairs.containsKey(args))
+			if(Math.random() >= 0.0){ // 1 probability : debug
 				try{
 					connect(args);
 					co = true;
