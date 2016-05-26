@@ -17,4 +17,10 @@ public interface ICom {
 	 * @return
 	 */
 	public String getTargetName();
+	
+	/**
+	 * Send message through this communication
+	 * @param mess 
+	 */
+	public void send(String mess);
 }

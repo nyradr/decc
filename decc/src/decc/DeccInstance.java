@@ -166,10 +166,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	
 	@Override
 	public boolean sendTo(String comid, String data){
-		MessPck mpck = new MessPck(comid, data);
 		
 		for(Communication c : this.coms.getComid(comid)){
-			c.getPeer().sendMess(mpck.getPck());
+			c.send(data);
 		}
 		
 		return true;
@@ -328,8 +327,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		System.out.println("Try to trace road from " + p.getHostName() + " with comid " + rpck.getComid() + " ori " + rpck.getOri() + " dest " + rpck.getDest());
 		
 		
-		if(this.roads.getComid(rpck.getComid()).isEmpty() &&
-			coms.getComid(rpck.getComid()).isEmpty()){			
+		if(this.roads.getComid(rpck.getComid()).isEmpty()){			
 			//no road with the comid
 			if(rpck.getDest().equals(this.name)){
 				

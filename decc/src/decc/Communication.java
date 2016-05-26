@@ -2,6 +2,7 @@ package decc;
 
 import java.util.concurrent.LinkedBlockingDeque;
 
+import decc.packet.MessPck;
 import decc.ui.ICom;
 
 /**
@@ -76,6 +77,12 @@ class Communication implements ICom{
 	 */
 	public static String generateComid(String target, String from){
 		return target + from;
+	}
+
+	@Override
+	public void send(String mess) {
+		if(linked)
+			peer.sendMess(new MessPck(comid, mess).getPck());
 	}
 
 	
