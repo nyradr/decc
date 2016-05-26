@@ -10,6 +10,11 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
+import decc.packet.EroutedPck;
+import decc.packet.MessPck;
+import decc.packet.Packet;
+import decc.packet.RoadPck;
+
 /**
  * Represent network peer
  * @author nyradr
@@ -65,7 +70,7 @@ class Peer extends Thread{
 		SocketAddress addr = new InetSocketAddress(host, port);
 		sock.connect(addr, timeout);
 		
-		this.sock.setTcpNoDelay(true);
+		sendIP();
 		
 		this.callback = callback;
 		
@@ -139,7 +144,7 @@ class Peer extends Thread{
 	 * Send data
 	 * @param data
 	 */
-	public void send(String data){
+	private void send(String data){
 		data += '\0';
 		//this.stegout.add(data.getBytes());
 		System.out.println("Send(" + data.getBytes().length + ")" + this.getHostName() + " : " + data);
@@ -151,12 +156,24 @@ class Peer extends Thread{
 		
 	}
 	
+	private void send(Command cmd, Packet pck){
+		send(cmd.toString() + pck.getPck());
+	}
+	
 	/**
 	 * Send route signal
 	 * @param data
 	 */
 	public void sendRoute(String data){
 		send(Command.ROUTE.toString() + data);
+	}
+	
+	/**
+	 * Send route signal
+	 * @param pck road packet
+	 */
+	public void sendRoute(RoadPck pck){
+		send(Command.ROUTE, pck);
 	}
 	
 	/**
@@ -167,8 +184,28 @@ class Peer extends Thread{
 		send(Command.EROUTE.toString() + comid);
 	}
 	
+	/**
+	 * send Eroute signal
+	 * @param pck eroute packet
+	 */
+	public void sendEroute(EroutedPck pck){
+		send(Command.EROUTE, pck);
+	}
+	
+	/**
+	 * Send Eroute signal for peer disconnection
+	 * @param data
+	 */
 	public void sendEroutePdc(String data){
 		send(Command.EROUTEPDC.toString() + data);
+	}
+	
+	/**
+	 * Send Eroute signal for peer disconnection
+	 * @param pck
+	 */
+	public void sendEroutePdc(EroutedPck pck){
+		send(Command.EROUTEPDC, pck);
 	}
 	
 	/**
@@ -178,7 +215,19 @@ class Peer extends Thread{
 	public void sendMess(String mess){
 		send(Command.MESS.toString() + mess);
 	}
-
+	
+	/**
+	 * Send mess signal
+	 * @param pck message packet
+	 */
+	public void sendMess(MessPck pck){
+		send(Command.MESS, pck);
+	}
+	
+	/**
+	 * Send broadcast signal
+	 * @param ip peer IP
+	 */
 	public void sendBrcast(String ip){
 		send(Command.BRCAST + ip);
 	}
