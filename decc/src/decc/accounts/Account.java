@@ -56,7 +56,6 @@ import org.bouncycastle.openpgp.operator.bc.BcPublicKeyKeyEncryptionMethodGenera
 public class Account {
 	
 	private String name;
-	private String pass;
 	private PGPPublicKeyRing publicKey;
 	private PGPSecretKeyRing privateKeyRing;
 	private PGPPrivateKey privateKey;
@@ -70,7 +69,6 @@ public class Account {
 	 */
 	public Account(String name, String pass, PGPPublicKeyRing pubk, PGPSecretKeyRing prvk) throws PGPException{
 		this.name = name;
-		this.pass = pass;
 		
 		publicKey = pubk;
 		privateKeyRing = prvk;
@@ -174,15 +172,6 @@ public class Account {
 	 * @return decrypted data
 	 */
 	public String decrypt(String data){
-		return "";
-	}
-	
-	/**
-	 * Sign data with this account
-	 * @param data data to sign
-	 * @return signature
-	 */
-	public String sign(String data){
 		return "";
 	}
 	
