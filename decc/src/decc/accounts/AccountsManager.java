@@ -1,8 +1,13 @@
 package decc.accounts;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import javax.crypto.Cipher;
 
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
@@ -22,7 +27,9 @@ public class AccountsManager {
 	 * @param iacc user account
 	 */
 	public AccountsManager(Account iacc){
+		user = iacc;
 		
+		contacts = new TreeMap<>();
 	}
 	
 	/**
@@ -64,28 +71,8 @@ public class AccountsManager {
 	 * @return
 	 */
 	public Set<String> searchContact(String name){
-		Set<String> res = new HashSet<>();
-		
-		return res;
-	}
-	
-	/**
-	 * Encrypt message to a contact
-	 * @param target contact name
-	 * @param mess message to send
-	 * @return
-	 */
-	public String encryptTo(String target, String mess){
-		return "";
-	}
-	
-	/**
-	 * Decrypt message to a contact
-	 * @param sender contact name
-	 * @param mess message to decrypt
-	 * @return
-	 */
-	public String decryptFrom(String sender, String mess){
-		return "";
+		return contacts.keySet().stream()
+				.filter(x -> x.toLowerCase().contains(name.toLowerCase()))
+				.collect(Collectors.toSet());
 	}
 }
