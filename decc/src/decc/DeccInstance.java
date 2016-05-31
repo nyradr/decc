@@ -6,12 +6,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import decc.accounts.Account;
+import decc.accounts.AccountsManager;
 import decc.options.Options;
 import decc.options.OptionsBuilder;
 import decc.packet.EroutedPck;
@@ -31,7 +35,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	private int port;					// port
 	private String ip;					// public ip
 	
-	private String name;				//user name
+	//private String name;				//user name
+	private AccountsManager accman;		// accounts manager
+	private final int rsakeysize = 512;	// default RSA key size (temporary)
 	
 	private boolean isRunning;			//for the thread
 	
@@ -49,11 +55,14 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	 * @param name user name
 	 * @param clb callback
 	 * @throws IOException error when the socket is open
+	 * @throws NoSuchProviderException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public DeccInstance(int port, String name, IDeccUser clb) throws IOException{
+	public DeccInstance(int port, String name, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
 		this.options = OptionsBuilder.getDefault();
 		
-		this.name = name;
+		Account user = Account.create(name, rsakeysize);
+		accman = new AccountsManager(user);
 		
 		this.serv = new ServerSocket(port);
 		serv.setSoTimeout(5000);
@@ -133,11 +142,11 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	
 	@Override
 	public String startCom(String target){
-		String comid = Communication.generateComid(target, this.name);
+		String comid = Communication.generateComid(target, this.accman.getUser().getName());
 		
 		for(Peer p : pairs.values()){
 			Communication com = new Communication(comid, target, p);
-			RoadPck rpck = new RoadPck(comid, this.name, target);
+			RoadPck rpck = new RoadPck(comid, this.accman.getUser().getName(), target);
 			
 			p.sendRoute(rpck.getPck());
 			this.coms.add(com);
@@ -176,7 +185,12 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 
 	@Override
 	public void setname(String name){
-		this.name = name;
+		try{
+			Account n = Account.create(name, rsakeysize);
+			accman.changeUser(n);
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -329,7 +343,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		
 		if(this.roads.getComid(rpck.getComid()).isEmpty()){			
 			//no road with the comid
-			if(rpck.getDest().equals(this.name)){
+			
+			if(rpck.getDest().equals(this.accman.getUser().getName())){
+				// target reached
 				
 				if(this.coms.getComid(rpck.getComid()).isEmpty()){		//no coms with the comid
 					Communication com = new Communication(rpck.getComid(), rpck.getOri(), p);

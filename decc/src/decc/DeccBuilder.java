@@ -1,6 +1,8 @@
 package decc;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 import decc.ui.IDecc;
 import decc.ui.IDeccUser;
@@ -17,8 +19,10 @@ public class DeccBuilder {
 	 * @param clb user callback
 	 * @return DECC interface
 	 * @throws IOException
+	 * @throws NoSuchProviderException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static IDecc getDefault(IDeccUser clb) throws IOException{
+	public static IDecc getDefault(IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
 		return new DeccInstance(4242, "", clb);
 	}
 	
@@ -29,8 +33,10 @@ public class DeccBuilder {
 	 * @param clb user callback
 	 * @return DECC interface
 	 * @throws IOException
+	 * @throws NoSuchProviderException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static IDecc getDecc(int port, String name, IDeccUser clb) throws IOException{
+	public static IDecc getDecc(int port, String name, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
 		return new DeccInstance(port, name, clb);
 	}
 }

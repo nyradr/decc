@@ -33,6 +33,22 @@ public class AccountsManager {
 	}
 	
 	/**
+	 * Get the actual user
+	 * @return
+	 */
+	public Account getUser(){
+		return user;
+	}
+	
+	/**
+	 * Change the actual user
+	 * @param acc
+	 */
+	public void changeUser(Account acc){
+		user = acc;
+	}
+	
+	/**
 	 * Add contact to the contact list
 	 * @param c contact
 	 */
