@@ -1,7 +1,11 @@
 package decc;
 
+import java.security.Key;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import javax.crypto.Cipher;
+
+import decc.accounts.Contact;
 import decc.packet.MessPck;
 import decc.ui.ICom;
 
@@ -13,7 +17,9 @@ import decc.ui.ICom;
 class Communication implements ICom{
 	
 	private String comid;	// communication comid
-	private String target;	// name of the targer
+	private String target;	// name of the target
+	private Contact ctarget; // target as a contact
+	private int cstate; // contact state
 	
 	private Peer peer;		// first peer
 	
@@ -69,6 +75,14 @@ class Communication implements ICom{
 		return target;
 	}
 	
+	public Contact getTargetContact(){
+		return ctarget;
+	}
+	
+	public void setTargetContact(Contact c){
+		ctarget = c;
+	}
+	
 	/**
 	 * Génère un nouveau Comid
 	 * @param target String definissant la cible
@@ -81,8 +95,32 @@ class Communication implements ICom{
 
 	@Override
 	public void send(String mess) {
-		if(linked)
-			peer.sendMess(new MessPck(comid, mess).getPck());
+		if(linked){
+			String emess = "";
+			
+			if(ctarget != null){
+				try{
+					Key key = ctarget.getPublic();
+					String crmode = "RSA/ECB/PKCS1Padding";
+					
+					if(ctarget.getSessionKey() == null){
+						crmode = "DES/ECB/PKCS5Padding";
+						key = ctarget.getSessionKey();
+					}
+				
+					Cipher cip = Cipher.getInstance(crmode, "BC");
+					cip.init(Cipher.ENCRYPT_MODE, key);
+					
+					for(byte b : cip.doFinal(mess.getBytes()))
+						emess += (char) b;
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}else
+				emess = mess;
+			
+			peer.sendMess(new MessPck(comid, emess).getPck());
+		}
 	}
 
 	

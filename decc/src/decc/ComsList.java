@@ -57,6 +57,19 @@ class ComsList {
 	}
 	
 	/**
+	 * Get the communication instance if the communication is linked
+	 * @param comid communication id
+	 * @return Communication instance or null
+	 */
+	public Communication getComidLinked(String comid){
+		for(Communication c : getComid(comid))
+			if(c.isLinked())
+				return c;
+		
+		return null;
+	}
+	
+	/**
 	 * Search for the communication with this peer
 	 * @param p peer to search
 	 * @return
