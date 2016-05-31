@@ -1,5 +1,7 @@
 package decc.accounts;
 
+import java.security.PublicKey;
+
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
@@ -10,15 +12,16 @@ import org.bouncycastle.openpgp.PGPPublicKeyRing;
 public class Contact {
 	
 	private String name;
-	private PGPPublicKeyRing publickey;
+	private PublicKey publickey;
 	
 	/**
 	 * Create contact
 	 * @param name contact name
 	 * @param pk public key
 	 */
-	public Contact(String name, PGPPublicKeyRing pk){
-		
+	public Contact(String name, PublicKey pk){
+		this.name = name;
+		publickey = pk;
 	}
 	
 	/**
@@ -29,15 +32,11 @@ public class Contact {
 		return name;
 	}
 	
-	public PGPPublicKeyRing getKeyRing(){
-		return publickey;
-	}
-	
 	/**
-	 * Get contact public key (for encryption)
+	 * Get the public key
 	 * @return
 	 */
-	public PGPPublicKey getPublicKeyEnc(){
-		return publickey.getPublicKey();
+	public PublicKey getPublic(){
+		return publickey;
 	}
 }
