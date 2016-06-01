@@ -14,7 +14,6 @@ public class Contact {
 	
 	private String name;
 	private PublicKey publickey;
-	private Key sessionKey;
 	
 	/**
 	 * Create contact
@@ -40,21 +39,5 @@ public class Contact {
 	 */
 	public PublicKey getPublic(){
 		return publickey;
-	}
-	
-	/**
-	 * Get the session key
-	 * @return
-	 */
-	public Key getSessionKey(){
-		return sessionKey;
-	}
-	
-	/**
-	 * Set a new session key
-	 * @param k
-	 */
-	public void setSessionKey(Key k){
-		sessionKey = k;
 	}
 }

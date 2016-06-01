@@ -1,6 +1,7 @@
 package decc;
 
 import java.security.Key;
+import java.security.PrivateKey;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import javax.crypto.Cipher;
@@ -8,6 +9,7 @@ import javax.crypto.Cipher;
 import decc.accounts.Contact;
 import decc.packet.MessPck;
 import decc.ui.ICom;
+import decc.ui.IComClb;
 
 /**
  * Represent a communication between 2 user
@@ -19,11 +21,14 @@ class Communication implements ICom{
 	private String comid;	// communication comid
 	private String target;	// name of the target
 	private Contact ctarget; // target as a contact
-	private int cstate; // contact state
+	private int cstate; 	// contact state
+	private Key sessionkey;	// communication session key
 	
 	private Peer peer;		// first peer
 	
 	private boolean linked;	// true if a link is established to the target
+	
+	private IComClb clb;
 	
 	/**
 	 * ctor
@@ -103,9 +108,9 @@ class Communication implements ICom{
 					Key key = ctarget.getPublic();
 					String crmode = "RSA/ECB/PKCS1Padding";
 					
-					if(ctarget.getSessionKey() == null){
+					if(sessionkey == null){
 						crmode = "DES/ECB/PKCS5Padding";
-						key = ctarget.getSessionKey();
+						key = sessionkey;
 					}
 				
 					Cipher cip = Cipher.getInstance(crmode, "BC");
@@ -122,6 +127,4 @@ class Communication implements ICom{
 			peer.sendMess(new MessPck(comid, emess).getPck());
 		}
 	}
-
-	
 }
