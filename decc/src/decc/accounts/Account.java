@@ -7,6 +7,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
+import java.util.Base64;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -48,6 +49,14 @@ public class Account {
 	 */
 	public PublicKey getPublic(){
 		return pubkey;
+	}
+	
+	/**
+	 * Get the public key encoded with base 64 encoder
+	 * @return
+	 */
+	public String getPublicStr(){
+		return Base64.getEncoder().encodeToString(pubkey.getEncoded());
 	}
 	
 	/**

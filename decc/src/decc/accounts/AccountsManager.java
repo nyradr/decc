@@ -1,17 +1,9 @@
 package decc.accounts;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
-import javax.crypto.Cipher;
-
-import org.bouncycastle.openpgp.PGPPublicKeyRing;
-
-import decc.options.AccountsOptions;
 
 /**
  * Manage all DECC accounts and account contacts
