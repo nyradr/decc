@@ -70,12 +70,12 @@ class Peer extends Thread{
 		SocketAddress addr = new InetSocketAddress(host, port);
 		sock.connect(addr, timeout);
 		
-		sendIP();
-		
 		this.callback = callback;
 		
 		this.stegin = this.sock.getInputStream();
 		this.stegout = this.sock.getOutputStream();
+		
+		sendIP();
 		
 		this.start();
 	}

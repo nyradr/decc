@@ -5,17 +5,22 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.util.ArrayList;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import javax.crypto.spec.SecretKeySpec;
+
 import decc.accounts.Account;
 import decc.accounts.AccountsManager;
+import decc.accounts.Contact;
 import decc.options.Options;
 import decc.options.OptionsBuilder;
 import decc.packet.EroutedPck;
@@ -352,7 +357,10 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 					com.setLinked(true);
 					this.coms.add(com);	//Add new conv
 					
-					MessPck mpck = new MessPck(rpck.getComid(), MessPck.CMD_CFND, "");	//send arrival confirmation
+					//send arrival confirmation with the user public key
+					MessPck mpck = new MessPck(rpck.getComid(),
+							MessPck.CMD_CFND,
+							accman.getUser().getPublicStr());
 					p.sendMess(mpck.getPck());
 					
 					this.userclb.onNewCom(rpck.getComid());	// to user
@@ -451,35 +459,69 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		MessPck mpck = new MessPck(args);
 		System.out.println("Routing message from " + p.getHostName() + " say " + mpck.getData());
 		
-		if(this.coms.getComid(mpck.getComid()).isEmpty()){	// not the target of this message, route it
+		if(this.coms.getComid(mpck.getComid()).isEmpty()){
+			// not the target of this message, route it
 			List<Road> curroad = this.roads.getPeerComid(mpck.getComid(), p);
 			
 			if(!curroad.isEmpty())
 				curroad.get(0).roadFrom(p).sendMess(mpck.getPck());
 			else
 				System.out.println("Packet transmission error");
-		}else{	// target reached
-			switch (mpck.getCommand()) {	// manage internal command
-			case MessPck.CMD_CFND:	// success road traced
-				
-				// remove all traced roads for this COMID
-				// set road as linked
-				for(Communication com : coms.getComs())
-					if(com.getPeer() != p){
-						com.close();
-						coms.remove(com);
-					}else
-						com.setLinked(true);
-				
-				this.userclb.onNewCom(mpck.getComid());
-				break;
-
-			default:	// no valid command : it's a normal message
-				this.userclb.onMess(mpck.getComid(), mpck.getData());
-				break;
-			}
+		}else{
+			// target reached
+			
+			onMessArrived(mpck, p);
 		}
 		
+	}
+	
+	/**
+	 * Produce when a message reached his target<br>
+	 * Manage message internal commands
+	 * @param mp
+	 */
+	private void onMessArrived(MessPck mpck, Peer p){
+		List<Communication> comsComid = coms.getComid(mpck.getComid());
+		
+		switch (mpck.getCommand()) {	// manage internal command
+		case MessPck.CMD_CFND:	// success road traced
+			
+			// remove all traced roads for this COMID
+			// set road as linked
+			for(Communication com : comsComid)
+				if(com.getPeer() != p){
+					com.close();
+					coms.remove(com);
+				}else
+					com.setLinked(true);
+			
+			// communication established, send public key
+			p.sendMess(new MessPck(mpck.getComid(),
+					MessPck.CMD_PK,
+					accman.getUser().getPublicStr()));
+			
+			this.userclb.onNewCom(mpck.getComid());
+			
+			// no break for getting the target public key
+		case MessPck.CMD_PK:
+			try {
+				KeyFactory kf = KeyFactory.getInstance("RSA", "BC");
+				PublicKey pub = kf.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(mpck.getData())));
+				
+				if(!comsComid.isEmpty())
+					accman.addContact(new Contact(comsComid.get(0).getTarget(), pub));
+				
+				
+				
+			} catch (Exception e){
+				e.printStackTrace();
+			}
+			break;
+			
+		default:	// no valid command : it's a normal message
+			this.userclb.onMess(mpck.getComid(), mpck.getData());
+			break;
+		}
 	}
 	
 	/**
