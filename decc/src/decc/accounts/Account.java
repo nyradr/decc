@@ -95,6 +95,12 @@ public class Account {
 		return sign;
 	}
 	
+	/**
+	 * Verify a string signed for this account
+	 * @param mess message to verify
+	 * @param sign message signature
+	 * @return true if the message is verified
+	 */
 	public boolean verifySign(String mess, String sign){
 		boolean isverif = false;
 		
@@ -112,6 +118,14 @@ public class Account {
 		}
 		
 		return isverif;
+	}
+	
+	/**
+	 * Get the account public key signature
+	 * @return
+	 */
+	public String getKeySign(){
+		return generateSign(getPublicStr());
 	}
 	
 	/**

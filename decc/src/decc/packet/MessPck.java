@@ -7,39 +7,49 @@ package decc.packet;
  */
 public class MessPck extends Packet{
 	/**
-	 * No command
+	 * No command, normal message
 	 */
 	public static final int CMD_NONE = 0x01;
 	/**
 	 * The Route command found his target
 	 */
 	public static final int CMD_CFND = 0x02;
+	/**
+	 * Public key exchange
+	 */
+	public static final int CMD_PK = 0x03;
 	
 	private String comid;
 	private int cmd;
 	private String data;
+	private String sign;
 	
 	/**
 	 * Create new message packet
 	 * @param comid comid of the conversation
 	 * @param cmd internal command, could be anythings but some values are reserved (see MessPck.CMD_ constants)
 	 * @param data data to send
+	 * @param sign data signature
 	 */
-	public MessPck(String comid, int cmd, String data){
-		this.comid = comid;
-		this.cmd = cmd;
-		this.data = data;
+	public MessPck(String comid, int cmd, String data, String sign){
+		initC(comid, cmd, data, sign);
 	}
 	
 	/**
 	 * Create new message packet without internal command
 	 * @param comid comid of the conversation
 	 * @param data data to send
+	 * @param sign data signature
 	 */
-	public MessPck(String comid, String data){
+	public MessPck(String comid, String data, String sign){
+		initC(comid, CMD_NONE, data, sign);
+	}
+	
+	private void initC(String comid, int cmd, String data, String sign){
 		this.comid = comid;
-		this.cmd = CMD_NONE;
+		this.cmd = cmd;
 		this.data = data;
+		this.sign = sign;
 	}
 	
 	/**
@@ -55,7 +65,11 @@ public class MessPck extends Packet{
 	 * @return
 	 */
 	public String getData(){
-		return this.data;
+		return data;
+	}
+	
+	public String getSign(){
+		return sign;
 	}
 	
 	/**
@@ -63,7 +77,7 @@ public class MessPck extends Packet{
 	 * @return
 	 */
 	public String getComid(){
-		return this.comid;
+		return comid;
 	}
 	
 	/**
@@ -71,29 +85,32 @@ public class MessPck extends Packet{
 	 * @return
 	 */
 	public int getCommand(){
-		return this.cmd;
+		return cmd;
 	}
 	
 	@Override
 	public String getPck(){
-		return this.comid + "\n" +  (char) cmd + this.data;
+		return comid + "\n" +  (char) cmd + data + "\n" + sign;
 	}
 
 	@Override
 	public boolean extract(String args) {
-		int index = args.indexOf("\n");
+		int indexfst = args.indexOf("\n");
+		int indexlst = args.lastIndexOf("\n");
 		
-		if(index >= 0 && args.length() >= index +2){
-			this.comid = args.substring(0, index);
+		if(indexfst >= 0 && args.length() >= indexfst +2){
+			comid = args.substring(0, indexfst);
 			
-			this.cmd = args.charAt(index +1);
+			cmd = args.charAt(indexfst +1);
 			try{
-				this.data = args.substring(index +2);
+				data = args.substring(indexfst +2, indexlst);
+				sign = args.substring(indexlst);
 			}catch (Exception e){
-				this.data = "";
+				data = "";
+				sign = "";
 			}
 		}else
-			this.comid = data;
+			comid = data;
 		return false;
 	}
 }

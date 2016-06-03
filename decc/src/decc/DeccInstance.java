@@ -360,7 +360,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 					//send arrival confirmation with the user public key
 					MessPck mpck = new MessPck(rpck.getComid(),
 							MessPck.CMD_CFND,
-							accman.getUser().getPublicStr());
+							accman.getUser().getPublicStr(), accman.getUser().getKeySign());
 					p.sendMess(mpck.getPck());
 					
 					this.userclb.onNewCom(rpck.getComid());	// to user
@@ -482,6 +482,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	 */
 	private void onMessArrived(MessPck mpck, Peer p){
 		List<Communication> comsComid = coms.getComid(mpck.getComid());
+		Communication comComid = coms.getComidLinked(mpck.getComid());
+		
+		System.out.println("CCMD : " + comComid);
 		
 		switch (mpck.getCommand()) {	// manage internal command
 		case MessPck.CMD_CFND:	// success road traced
@@ -492,13 +495,14 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				if(com.getPeer() != p){
 					com.close();
 					coms.remove(com);
-				}else
+				}else{
 					com.setLinked(true);
-			
+					comComid = com;
+				}
 			// communication established, send public key
 			p.sendMess(new MessPck(mpck.getComid(),
 					MessPck.CMD_PK,
-					accman.getUser().getPublicStr()));
+					accman.getUser().getPublicStr(), accman.getUser().getKeySign()));
 			
 			this.userclb.onNewCom(mpck.getComid());
 			
@@ -508,18 +512,21 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				KeyFactory kf = KeyFactory.getInstance("RSA", "BC");
 				PublicKey pub = kf.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(mpck.getData())));
 				
-				if(!comsComid.isEmpty())
-					accman.addContact(new Contact(comsComid.get(0).getTarget(), pub));
-				
-				
-				
+				// communication found, add to contact
+				if(comComid != null){
+					Contact c = new Contact(comsComid.get(0).getTarget(), pub);
+					
+					accman.addContact(c);
+					comComid.setTargetContact(c);
+				}
 			} catch (Exception e){
 				e.printStackTrace();
 			}
 			break;
 			
 		default:	// no valid command : it's a normal message
-			this.userclb.onMess(mpck.getComid(), mpck.getData());
+			this.userclb.onMess(mpck.getComid(),
+					comComid.receive(mpck.getData(), accman.getUser().getPrivate()));
 			break;
 		}
 	}
