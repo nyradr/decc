@@ -150,7 +150,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		String comid = Communication.generateComid(target, this.accman.getUser().getName());
 		
 		for(Peer p : pairs.values()){
-			Communication com = new Communication(comid, target, p);
+			Communication com = new Communication(comid, target, p, accman);
 			RoadPck rpck = new RoadPck(comid, this.accman.getUser().getName(), target);
 			
 			p.sendRoute(rpck.getPck());
@@ -353,7 +353,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				// target reached
 				
 				if(this.coms.getComid(rpck.getComid()).isEmpty()){		//no coms with the comid
-					Communication com = new Communication(rpck.getComid(), rpck.getOri(), p);
+					Communication com = new Communication(rpck.getComid(), rpck.getOri(), p, accman);
 					com.setLinked(true);
 					this.coms.add(com);	//Add new conv
 					
@@ -484,8 +484,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		List<Communication> comsComid = coms.getComid(mpck.getComid());
 		Communication comComid = coms.getComidLinked(mpck.getComid());
 		
-		System.out.println("CCMD : " + comComid);
-		
 		switch (mpck.getCommand()) {	// manage internal command
 		case MessPck.CMD_CFND:	// success road traced
 			
@@ -514,19 +512,23 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				
 				// communication found, add to contact
 				if(comComid != null){
-					Contact c = new Contact(comsComid.get(0).getTarget(), pub);
-					
+					Contact c = new Contact(comsComid.get(0).getTarget(), pub);	
 					accman.addContact(c);
-					comComid.setTargetContact(c);
 				}
+				
+				comComid.startDh();
 			} catch (Exception e){
 				e.printStackTrace();
 			}
 			break;
 			
+		case MessPck.CMD_DH:
+			comComid.receiveDh(mpck.getData());
+			break;
+			
 		default:	// no valid command : it's a normal message
 			this.userclb.onMess(mpck.getComid(),
-					comComid.receive(mpck.getData(), accman.getUser().getPrivate()));
+					comComid.receive(mpck.getData()));
 			break;
 		}
 	}

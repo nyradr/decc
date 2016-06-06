@@ -7,6 +7,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 import javax.crypto.Cipher;
 
+import decc.accounts.AccountsManager;
 import decc.accounts.Contact;
 import decc.packet.MessPck;
 import decc.ui.ICom;
@@ -21,9 +22,10 @@ class Communication implements ICom{
 	
 	private String comid;	// communication comid
 	private String target;	// name of the target
-	private Contact ctarget; // target as a contact
-	private int cstate; 	// contact state
-	private Key sessionkey;	// communication session key
+	
+	private AccountsManager accman; // account manager
+	
+	private DiffieHellman dekey;
 	
 	private Peer peer;		// first peer
 	
@@ -36,11 +38,14 @@ class Communication implements ICom{
 	 * @param comid communication comid
 	 * @param peer first peer
 	 */
-	public Communication(String comid, String target, Peer peer){
+	public Communication(String comid, String target, Peer peer, AccountsManager accman){
 		this.comid = comid;
 		this.target = target;
 		this.peer = peer;
 		this.linked = false;
+		this.accman = accman;
+		
+		this.dekey = new DiffieHellman();
 	}
 	
 	/**
@@ -64,10 +69,18 @@ class Communication implements ICom{
 		return peer;
 	}
 	
+	/**
+	 * Return true if the communication is linked to the target
+	 * @return
+	 */
 	public boolean isLinked(){
 		return linked;
 	}
 	
+	/**
+	 * Define the communication linked state
+	 * @param l
+	 */
 	public void setLinked(boolean l){
 		linked = l;
 	}
@@ -82,11 +95,7 @@ class Communication implements ICom{
 	}
 	
 	public Contact getTargetContact(){
-		return ctarget;
-	}
-	
-	public void setTargetContact(Contact c){
-		ctarget = c;
+		return accman.getContact(target);
 	}
 	
 	/**
@@ -94,7 +103,7 @@ class Communication implements ICom{
 	 * @return
 	 */
 	public boolean isCryptoEnable(){
-		return ctarget != null || sessionkey != null;
+		return dekey.getSecret() != null;
 	}
 	
 	/**
@@ -111,29 +120,21 @@ class Communication implements ICom{
 	public void send(String mess) {
 		if(linked){
 			String emess = "";
-			
-			if(ctarget != null){
+			if(dekey.getSecret() != null){
 				try{
-					Key key = ctarget.getPublic();
-					String crmode = "RSA/ECB/PKCS1Padding";
-					
-					if(sessionkey != null){
-						crmode = "DES/ECB";
-						key = sessionkey;
-					}
-				
-					Cipher cip = Cipher.getInstance(crmode, "BC");
-					cip.init(Cipher.ENCRYPT_MODE, key);
+					Cipher cip = Cipher.getInstance("DES/ECB/PKCS5Padding", "BC");
+					cip.init(Cipher.ENCRYPT_MODE, dekey.getSecret());
 					
 					emess = Base64.getEncoder().encodeToString(cip.doFinal(mess.getBytes()));
-					
 				}catch(Exception e){
 					e.printStackTrace();
 				}
 			}else
 				emess = mess;
 			
-			peer.sendMess(new MessPck(comid, emess, "").getPck());
+			
+			String sign = accman.getUser().generateSign(mess);
+			peer.sendMess(new MessPck(comid, emess, sign).getPck());
 		}
 	}
 	
@@ -143,32 +144,36 @@ class Communication implements ICom{
 	 * @param upk
 	 * @return
 	 */
-	public String receive(String mess, PrivateKey upk){
+	public String receive(String mess){
 		String clear = "";
 		
-		if(ctarget != null){
+		if(dekey.getSecret() != null){
 			try{
-				Key key = upk;
-				String crmode = "RSA/ECB/PKCS1Padding";
-			
-				if(sessionkey != null){
-					crmode = "DES/ECB/PKC5Padding";
-					key = sessionkey;
-				}
-			
-				Cipher cip = Cipher.getInstance(crmode, "BC");
-				cip.init(Cipher.DECRYPT_MODE, key);
+				Cipher cip = Cipher.getInstance("DES/ECB/PKCS5Padding", "BC");
+				cip.init(Cipher.DECRYPT_MODE, dekey.getSecret());
 				
-				for(byte b : cip.doFinal(
-						Base64.getDecoder().decode(mess.getBytes())))
-					clear += (char) b;
-				
-			}catch (Exception e){
+				clear = new String(cip.doFinal(Base64.getDecoder().decode(mess.getBytes())));
+			}catch(Exception e){
 				e.printStackTrace();
 			}
 		}else
 			clear = mess;
-	
+		
 		return clear;
+	}
+	
+	/**
+	 * Receive a diffie-hellman key
+	 * @param key
+	 */
+	public void receiveDh(String key){
+		dekey.receivePublic(key);
+	}
+	
+	public void startDh(){
+		String depk = dekey.encodePublic();
+		String sign = accman.getUser().generateSign(depk);
+		MessPck mpck = new MessPck(comid, MessPck.CMD_DH, depk, sign);
+		peer.sendMess(mpck);
 	}
 }

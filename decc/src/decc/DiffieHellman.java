@@ -13,6 +13,7 @@ import java.util.Base64;
 
 import javax.crypto.KeyAgreement;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DESKeySpec;
 
 /**
@@ -23,18 +24,30 @@ class DiffieHellman {
 	
 	private static final int keysize = 1024;
 	private KeyPair dekp;
+	private Key secret;
 	
 	/**
 	 * Initialize the key exchange
 	 * @throws NoSuchAlgorithmException
 	 * @throws NoSuchProviderException
 	 */
-	public DiffieHellman() throws NoSuchAlgorithmException, NoSuchProviderException{
+	public DiffieHellman(){
+		try{
+			KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
+			kpg.initialize(keysize);
 		
-		KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH", "BC");
-		kpg.initialize(keysize);
-		
-		dekp = kpg.generateKeyPair();
+			dekp = kpg.generateKeyPair();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Get the generated diffie-hellman secret key
+	 * @return
+	 */
+	public Key getSecret(){
+		return secret;
 	}
 	
 	/**
@@ -54,20 +67,20 @@ class DiffieHellman {
 	public Key receivePublic(String pk){
 		try {
 			// extract public key
-			KeyFactory bkf = KeyFactory.getInstance("DH", "BC");
+			KeyFactory bkf = KeyFactory.getInstance("DH");
 			X509EncodedKeySpec ks = new X509EncodedKeySpec(
 					Base64.getDecoder().decode(pk.getBytes()));
 			PublicKey bpk = bkf.generatePublic(ks);
 			
 			// key agreement
-			KeyAgreement ka = KeyAgreement.getInstance("DH", "BC");
+			KeyAgreement ka = KeyAgreement.getInstance("DH");
 			ka.init(dekp.getPrivate());
 			ka.doPhase(bpk, true);
 			
 			// DES key factory
 			SecretKeyFactory skf = SecretKeyFactory.getInstance("DES", "BC");
 			DESKeySpec dks = new DESKeySpec(ka.generateSecret());
-			return skf.generateSecret(dks);
+			return secret = skf.generateSecret(dks);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
