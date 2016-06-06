@@ -2,29 +2,24 @@ package decc.accounts;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
 import java.security.Signature;
-import java.util.Arrays;
 import java.util.Base64;
 
-import javax.crypto.Cipher;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openpgp.PGPException;
 
 /**
  * Represent a DECC account
  * @author nyradr
  */
-public class Account {
+public class Account extends Contact{
 	
-	private String name;
-	private PublicKey pubkey;
-	private PrivateKey privkey;
+	private PrivateKey privatekey;
 	
 	/**
 	 * Create account with private key (can decrypt)
@@ -34,26 +29,9 @@ public class Account {
 	 * @throws PGPException 
 	 */
 	public Account(String name, PublicKey pubk, PrivateKey prvk){
-		this.name = name;
+		super(name, pubk);
 		
-		pubkey = pubk;
-		privkey = prvk;
-	}
-	
-	/**
-	 * Get the account name
-	 * @return
-	 */
-	public String getName(){
-		return name;
-	}
-	
-	/**
-	 * Get the account public PGP key
-	 * @return
-	 */
-	public PublicKey getPublic(){
-		return pubkey;
+		privatekey = prvk;
 	}
 	
 	/**
@@ -61,7 +39,7 @@ public class Account {
 	 * @return
 	 */
 	public String getPublicStr(){
-		return Base64.getEncoder().encodeToString(pubkey.getEncoded());
+		return Base64.getEncoder().encodeToString(publickey.getEncoded());
 	}
 	
 	/**
@@ -69,7 +47,7 @@ public class Account {
 	 * @return
 	 */
 	public PrivateKey getPrivate(){
-		return privkey;
+		return privatekey;
 	}
 	
 	/**
@@ -82,7 +60,7 @@ public class Account {
 		
 		try{
 			Signature sig = Signature.getInstance("SHA1withRSA", "BC");
-			sig.initSign(privkey);
+			sig.initSign(privatekey);
 			
 			sig.update(mess.getBytes());
 			
@@ -92,28 +70,6 @@ public class Account {
 		}
 		
 		return sign;
-	}
-	
-	/**
-	 * Verify a string signed for this account
-	 * @param mess message to verify
-	 * @param sign message signature
-	 * @return true if the message is verified
-	 */
-	public boolean verifySign(String mess, String sign){
-		boolean isverif = false;
-		try{
-			Signature sig = Signature.getInstance("SHA1withRSA", "BC");
-			sig.initVerify(pubkey);
-			
-			sig.update(mess.getBytes());
-			
-			isverif = sig.verify(Base64.getDecoder().decode(sign.getBytes()));
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-		
-		return isverif;
 	}
 	
 	/**

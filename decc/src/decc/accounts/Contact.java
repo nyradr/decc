@@ -1,12 +1,8 @@
 package decc.accounts;
 
-import java.security.Key;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.util.Base64;
-
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.bouncycastle.openpgp.PGPPublicKeyRing;
 
 /**
  * Represent a DECC contact
@@ -14,8 +10,8 @@ import org.bouncycastle.openpgp.PGPPublicKeyRing;
  */
 public class Contact {
 	
-	private String name;
-	private PublicKey publickey;
+	protected String name;
+	protected PublicKey publickey;
 	
 	/**
 	 * Create contact
