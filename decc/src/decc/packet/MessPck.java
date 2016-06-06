@@ -18,6 +18,10 @@ public class MessPck extends Packet{
 	 * Public key exchange
 	 */
 	public static final int CMD_PK = 0x03;
+	/**
+	 * Diffie-Hellman key exchange
+	 */
+	public static final int CMD_DH = 0x04;
 	
 	private String comid;
 	private int cmd;
@@ -104,7 +108,7 @@ public class MessPck extends Packet{
 			cmd = args.charAt(indexfst +1);
 			try{
 				data = args.substring(indexfst +2, indexlst);
-				sign = args.substring(indexlst);
+				sign = args.substring(indexlst +1);
 			}catch (Exception e){
 				data = "";
 				sign = "";

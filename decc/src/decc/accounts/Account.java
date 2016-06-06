@@ -8,6 +8,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.Signature;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -80,14 +81,12 @@ public class Account {
 		String sign = "";
 		
 		try{
-			MessageDigest md = MessageDigest.getInstance("SHA1", "BC");
-			Cipher cip = Cipher.getInstance("RSA/ECB/PKCS1Padding", "BC");
-			cip.init(Cipher.ENCRYPT_MODE, privkey);
+			Signature sig = Signature.getInstance("SHA1withRSA", "BC");
+			sig.initSign(privkey);
 			
-			byte[] hash = md.digest(mess.getBytes());
-			byte[] si = cip.doFinal(hash);
+			sig.update(mess.getBytes());
 			
-			sign = Base64.getEncoder().encodeToString(si);
+			sign = Base64.getEncoder().encodeToString(sig.sign());
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -103,16 +102,13 @@ public class Account {
 	 */
 	public boolean verifySign(String mess, String sign){
 		boolean isverif = false;
-		
 		try{
-			MessageDigest md = MessageDigest.getInstance("SHA1", "BC");
-			Cipher cip = Cipher.getInstance("RSA/ECB/PKCS1Padding", "BC");
-			cip.init(Cipher.DECRYPT_MODE, pubkey);
+			Signature sig = Signature.getInstance("SHA1withRSA", "BC");
+			sig.initVerify(pubkey);
 			
-			byte[] hashsi = cip.doFinal(Base64.getDecoder().decode(sign.getBytes()));
-			byte[] hash = md.digest(mess.getBytes());
+			sig.update(mess.getBytes());
 			
-			isverif = Arrays.equals(hash, hashsi);
+			isverif = sig.verify(Base64.getDecoder().decode(sign.getBytes()));
 		}catch(Exception e){
 			e.printStackTrace();
 		}
