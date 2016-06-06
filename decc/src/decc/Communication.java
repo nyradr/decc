@@ -132,8 +132,8 @@ class Communication implements ICom{
 			}else
 				emess = mess;
 			
-			
 			String sign = accman.getUser().generateSign(mess);
+			
 			peer.sendMess(new MessPck(comid, emess, sign).getPck());
 		}
 	}
@@ -144,7 +144,7 @@ class Communication implements ICom{
 	 * @param upk
 	 * @return
 	 */
-	public String receive(String mess){
+	public String receive(String mess, String sign){
 		String clear = "";
 		
 		if(dekey.getSecret() != null){
@@ -158,6 +158,11 @@ class Communication implements ICom{
 			}
 		}else
 			clear = mess;
+		
+		if(!accman.getContact(target).verifySign(clear, sign)){
+			System.out.println("\tMessage verification failed");
+			clear = "";
+		}
 		
 		return clear;
 	}

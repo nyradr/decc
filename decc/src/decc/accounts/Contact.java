@@ -2,6 +2,8 @@ package decc.accounts;
 
 import java.security.Key;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.util.Base64;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -39,5 +41,27 @@ public class Contact {
 	 */
 	public PublicKey getPublic(){
 		return publickey;
+	}
+	
+	/**
+	 * Verify a string signed for this account
+	 * @param mess message to verify
+	 * @param sign message signature
+	 * @return true if the message is verified
+	 */
+	public boolean verifySign(String mess, String sign){
+		boolean isverif = false;
+		try{
+			Signature sig = Signature.getInstance("SHA1withRSA", "BC");
+			sig.initVerify(publickey);
+			
+			sig.update(mess.getBytes());
+			
+			isverif = sig.verify(Base64.getDecoder().decode(sign.getBytes()));
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return isverif;
 	}
 }

@@ -528,7 +528,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			
 		default:	// no valid command : it's a normal message
 			this.userclb.onMess(mpck.getComid(),
-					comComid.receive(mpck.getData()));
+					comComid.receive(mpck.getData(), mpck.getSign()));
 			break;
 		}
 	}
