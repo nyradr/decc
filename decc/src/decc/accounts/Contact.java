@@ -4,6 +4,8 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.util.Base64;
 
+import decc.options.Crypto;
+
 /**
  * Represent a DECC contact
  * @author nyradr
@@ -48,7 +50,7 @@ public class Contact {
 	public boolean verifySign(String mess, String sign){
 		boolean isverif = false;
 		try{
-			Signature sig = Signature.getInstance("SHA1withRSA", "BC");
+			Signature sig = Signature.getInstance(Crypto.SIGN_ALGO, Crypto.Provider);
 			sig.initVerify(publickey);
 			
 			sig.update(mess.getBytes());

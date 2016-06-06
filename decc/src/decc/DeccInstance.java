@@ -21,6 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 import decc.accounts.Account;
 import decc.accounts.AccountsManager;
 import decc.accounts.Contact;
+import decc.options.Crypto;
 import decc.options.Options;
 import decc.options.OptionsBuilder;
 import decc.packet.EroutedPck;
@@ -42,7 +43,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	
 	//private String name;				//user name
 	private AccountsManager accman;		// accounts manager
-	private final int rsakeysize = 512;	// default RSA key size (temporary)
 	
 	private boolean isRunning;			//for the thread
 	
@@ -66,7 +66,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	public DeccInstance(int port, String name, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
 		this.options = OptionsBuilder.getDefault();
 		
-		Account user = Account.create(name, rsakeysize);
+		Account user = Account.create(name, Crypto.DEF_RSA_LEN);
 		accman = new AccountsManager(user);
 		
 		this.serv = new ServerSocket(port);
@@ -191,7 +191,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	@Override
 	public void setname(String name){
 		try{
-			Account n = Account.create(name, rsakeysize);
+			Account n = Account.create(name, Crypto.DEF_RSA_LEN);
 			accman.changeUser(n);
 		}catch (Exception e){
 			e.printStackTrace();

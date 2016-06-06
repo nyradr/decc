@@ -9,6 +9,7 @@ import javax.crypto.Cipher;
 
 import decc.accounts.AccountsManager;
 import decc.accounts.Contact;
+import decc.options.Crypto;
 import decc.packet.MessPck;
 import decc.ui.ICom;
 import decc.ui.IComClb;
@@ -122,7 +123,7 @@ class Communication implements ICom{
 			String emess = "";
 			if(dekey.getSecret() != null){
 				try{
-					Cipher cip = Cipher.getInstance("DES/ECB/PKCS5Padding", "BC");
+					Cipher cip = Cipher.getInstance(Crypto.CONV_ENC, Crypto.Provider);
 					cip.init(Cipher.ENCRYPT_MODE, dekey.getSecret());
 					
 					emess = Base64.getEncoder().encodeToString(cip.doFinal(mess.getBytes()));
@@ -140,16 +141,16 @@ class Communication implements ICom{
 	
 	/**
 	 * Decrypt received message
-	 * @param mess 
-	 * @param upk
-	 * @return
+	 * @param mess received message
+	 * @param sign message signature
+	 * @return decrypted message or "" if the signature is'nt valid
 	 */
 	public String receive(String mess, String sign){
 		String clear = "";
 		
 		if(dekey.getSecret() != null){
 			try{
-				Cipher cip = Cipher.getInstance("DES/ECB/PKCS5Padding", "BC");
+				Cipher cip = Cipher.getInstance(Crypto.CONV_ENC, Crypto.Provider);
 				cip.init(Cipher.DECRYPT_MODE, dekey.getSecret());
 				
 				clear = new String(cip.doFinal(Base64.getDecoder().decode(mess.getBytes())));

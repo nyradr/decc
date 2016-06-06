@@ -13,6 +13,8 @@ import java.util.Base64;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPException;
 
+import decc.options.Crypto;
+
 /**
  * Represent a DECC account
  * @author nyradr
@@ -59,7 +61,7 @@ public class Account extends Contact{
 		String sign = "";
 		
 		try{
-			Signature sig = Signature.getInstance("SHA1withRSA", "BC");
+			Signature sig = Signature.getInstance(Crypto.SIGN_ALGO, Crypto.Provider);
 			sig.initSign(privatekey);
 			
 			sig.update(mess.getBytes());
@@ -91,7 +93,7 @@ public class Account extends Contact{
 	public static Account create(String name, int size) throws NoSuchAlgorithmException, NoSuchProviderException{
 		Security.addProvider(new BouncyCastleProvider());
 		
-		KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", "BC");
+		KeyPairGenerator kpg = KeyPairGenerator.getInstance(Crypto.ACC_ALGO, Crypto.Provider);
 		kpg.initialize(size);
 		
 		KeyPair kp = kpg.generateKeyPair();

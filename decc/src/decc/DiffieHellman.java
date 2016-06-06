@@ -16,13 +16,13 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DESKeySpec;
 
+import decc.options.Crypto;
+
 /**
  * Diffie-Hellman DES key exchange
  * @author nyradr
  */
 class DiffieHellman {
-	
-	private static final int keysize = 1024;
 	private KeyPair dekp;
 	private Key secret;
 	
@@ -33,8 +33,8 @@ class DiffieHellman {
 	 */
 	public DiffieHellman(){
 		try{
-			KeyPairGenerator kpg = KeyPairGenerator.getInstance("DH");
-			kpg.initialize(keysize);
+			KeyPairGenerator kpg = KeyPairGenerator.getInstance(Crypto.DH);
+			kpg.initialize(Crypto.DH_SIZE);
 		
 			dekp = kpg.generateKeyPair();
 		}catch(Exception e){
@@ -67,18 +67,18 @@ class DiffieHellman {
 	public Key receivePublic(String pk){
 		try {
 			// extract public key
-			KeyFactory bkf = KeyFactory.getInstance("DH");
+			KeyFactory bkf = KeyFactory.getInstance(Crypto.DH);
 			X509EncodedKeySpec ks = new X509EncodedKeySpec(
 					Base64.getDecoder().decode(pk.getBytes()));
 			PublicKey bpk = bkf.generatePublic(ks);
 			
 			// key agreement
-			KeyAgreement ka = KeyAgreement.getInstance("DH");
+			KeyAgreement ka = KeyAgreement.getInstance(Crypto.DH);
 			ka.init(dekp.getPrivate());
 			ka.doPhase(bpk, true);
 			
 			// DES key factory
-			SecretKeyFactory skf = SecretKeyFactory.getInstance("DES", "BC");
+			SecretKeyFactory skf = SecretKeyFactory.getInstance(Crypto.CONV_ALGO, Crypto.Provider);
 			DESKeySpec dks = new DESKeySpec(ka.generateSecret());
 			return secret = skf.generateSecret(dks);
 		} catch (Exception e) {
