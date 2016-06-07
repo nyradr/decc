@@ -172,8 +172,11 @@ class Communication implements ICom{
 	 * Receive a diffie-hellman key
 	 * @param key
 	 */
-	public void receiveDh(String key){
-		dekey.receivePublic(key);
+	public void receiveDh(String key, String sign){
+		if(accman.getContact(target).verifySign(key, sign))
+			dekey.receivePublic(key);
+		else
+			System.out.println("\tDH unverified");
 	}
 	
 	public void startDh(){

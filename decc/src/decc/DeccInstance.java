@@ -109,7 +109,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	}
 	
 	@Override
-	public boolean connect(String host){ //throws UnknownHostException, IOException, SocketTimeoutException{
+	public boolean connect(String host){
 		try{
 			Peer pair = new Peer(this, host, this.port);
 			pairs.put(pair.getHostName(), pair);
@@ -507,7 +507,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			// no break for getting the target public key
 		case MessPck.CMD_PK:
 			try {
-				KeyFactory kf = KeyFactory.getInstance("RSA", "BC");
+				KeyFactory kf = KeyFactory.getInstance(Crypto.ACC_ALGO, Crypto.Provider);
 				PublicKey pub = kf.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(mpck.getData())));
 				
 				// communication found, add to contact
@@ -523,7 +523,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			break;
 			
 		case MessPck.CMD_DH:
-			comComid.receiveDh(mpck.getData());
+			comComid.receiveDh(mpck.getData(), mpck.getSign());
 			break;
 			
 		default:	// no valid command : it's a normal message
