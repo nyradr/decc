@@ -17,6 +17,7 @@ public class OptionsBuilder {
 		private OptionImpl(){
 			maxpeer = 50;
 			maxRoads = 200;
+			allowBS = false;
 		}
 		
 		/**
