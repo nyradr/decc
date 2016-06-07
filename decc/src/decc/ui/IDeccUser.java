@@ -4,7 +4,7 @@ package decc.ui;
  * Interface for user of the Decc protocol
  * @author nyradr
  */
-public interface IDeccUser {
+public interface IDeccUser extends IComClb{
 	
 	/**
 	 * Produce when new peer connect
@@ -17,18 +17,6 @@ public interface IDeccUser {
 	 * @param host peer IP
 	 */
 	public void onPeerDeco(String host);
-	
-	/**
-	 * Produce when new conversation arrive
-	 * @param comid conversation comid
-	 */
-	public void onNewCom(String comid);
-	
-	/**
-	 * Produce when conversation stop
-	 * @param comid
-	 */
-	public void onComEnd(String comid);
 	
 	/**
 	 * Produce when the target is impossible to reach
@@ -53,10 +41,4 @@ public interface IDeccUser {
 	 */
 	public void onEroute(String comid, String hosta, String hostb);
 	
-	/**
-	 * Produce when message arrive to you
-	 * @param comid conversation comid
-	 * @param mess message data
-	 */
-	public void onMess(String comid, String mess);
 }
