@@ -150,7 +150,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		String comid = Communication.generateComid(target, this.accman.getUser().getName());
 		
 		for(Peer p : pairs.values()){
-			Communication com = new Communication(comid, target, p, accman);
+			Communication com = new Communication(comid, target, p, accman, userclb);
 			RoadPck rpck = new RoadPck(comid, this.accman.getUser().getName(), target);
 			
 			p.sendRoute(rpck.getPck());
@@ -310,8 +310,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				// try to retrace the road
 				if(!pairs.isEmpty())
 					startCom(c.getTarget());
-				else
-					userclb.onComEnd(c.getComid());
 			}
 			
 			if(ip != null){
@@ -353,7 +351,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				// target reached
 				
 				if(this.coms.getComid(rpck.getComid()).isEmpty()){		//no coms with the comid
-					Communication com = new Communication(rpck.getComid(), rpck.getOri(), p, accman);
+					Communication com = new Communication(rpck.getComid(), rpck.getOri(), p, accman, userclb);
 					com.setLinked(true);
 					this.coms.add(com);	//Add new conv
 					
@@ -363,7 +361,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 							accman.getUser().getPublicStr(), accman.getUser().getKeySign());
 					p.sendMess(mpck.getPck());
 					
-					this.userclb.onNewCom(rpck.getComid());	// to user
 				}else
 					p.sendEroute(rpck.getComid());
 			}else{
@@ -400,7 +397,9 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				curroads.get(0).roadFrom(p).sendEroute(args);				//transmiting the eroute signal to the other peer	;
 			
 			this.roads.remove(this.roads.getPeerComid(args, p).get(0));		//remove the road
-		}else{																//no roads exist, check coms
+		
+		}else if (!coms.getComid(args).isEmpty()){							//no roads exist, check coms
+			
 			// remove communication
 			List<Communication> curcom = this.coms.getPeerComid(args, p);
 			boolean islinked = this.coms.isComidLinked(args);
@@ -411,9 +410,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				this.coms.remove(curcom.get(0));
 			}
 			
-			if(this.coms.getComid(args).isEmpty() && islinked){
-				this.userclb.onComEnd(args);
-			}else
+			if(this.coms.getComid(args).isEmpty() && !islinked)
 				this.userclb.onComFail(args, target);
 		}
 	}
@@ -442,8 +439,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				//try to retrace new road to the target
 				if(!pairs.isEmpty())
 					startCom(target);
-				else
-					userclb.onComEnd(erpck.getComid());
 			}
 				
 		}
@@ -502,8 +497,6 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 					MessPck.CMD_PK,
 					accman.getUser().getPublicStr(), accman.getUser().getKeySign()));
 			
-			this.userclb.onNewCom(mpck.getComid());
-			
 			// no break for getting the target public key
 		case MessPck.CMD_PK:
 			try {
@@ -527,8 +520,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			break;
 			
 		default:	// no valid command : it's a normal message
-			this.userclb.onMess(mpck.getComid(),
-					comComid.receive(mpck.getData(), mpck.getSign()));
+			comComid.receive(mpck.getData(), mpck.getSign());
 			break;
 		}
 	}

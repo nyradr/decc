@@ -39,12 +39,13 @@ class Communication implements ICom{
 	 * @param comid communication comid
 	 * @param peer first peer
 	 */
-	public Communication(String comid, String target, Peer peer, AccountsManager accman){
+	public Communication(String comid, String target, Peer peer, AccountsManager accman, IComClb clb){
 		this.comid = comid;
 		this.target = target;
 		this.peer = peer;
 		this.linked = false;
 		this.accman = accman;
+		this.clb = clb;
 		
 		this.dekey = new DiffieHellman();
 	}
@@ -83,6 +84,13 @@ class Communication implements ICom{
 	 * @param l
 	 */
 	public void setLinked(boolean l){
+		if(l != linked){
+			if(l)
+				clb.onNewCom(comid);
+			else
+				clb.onComEnd(comid);
+		}
+			
 		linked = l;
 	}
 	
@@ -143,9 +151,8 @@ class Communication implements ICom{
 	 * Decrypt received message
 	 * @param mess received message
 	 * @param sign message signature
-	 * @return decrypted message or "" if the signature is'nt valid
 	 */
-	public String receive(String mess, String sign){
+	public void receive(String mess, String sign){
 		String clear = "";
 		
 		if(dekey.getSecret() != null){
@@ -160,12 +167,9 @@ class Communication implements ICom{
 		}else
 			clear = mess;
 		
-		if(!accman.getContact(target).verifySign(clear, sign)){
-			System.out.println("\tMessage verification failed");
-			clear = "";
-		}
+		boolean verified = accman.getContact(target).verifySign(clear, sign);
 		
-		return clear;
+		clb.onMess(comid, clear, verified);
 	}
 	
 	/**

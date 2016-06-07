@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import decc.ui.ICom;
+import decc.ui.IComClb;
 
 /**
  * List of communications
@@ -13,6 +14,7 @@ import decc.ui.ICom;
 class ComsList {
 	
 	private List<Communication> coms;	//storage
+	private IComClb clb;
 	
 	/**
 	 * ctor
@@ -35,6 +37,7 @@ class ComsList {
 	 * @param c communication instance
 	 */
 	public void remove(Communication c){
+		c.setLinked(false);
 		this.coms.remove(c);
 	}
 	
