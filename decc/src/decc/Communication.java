@@ -10,6 +10,7 @@ import javax.crypto.Cipher;
 import decc.accounts.AccountsManager;
 import decc.accounts.Contact;
 import decc.options.Crypto;
+import decc.packet.EroutedPck;
 import decc.packet.MessPck;
 import decc.ui.ICom;
 import decc.ui.IComClb;
@@ -143,7 +144,7 @@ class Communication implements ICom{
 			
 			String sign = accman.getUser().generateSign(mess);
 			
-			peer.sendMess(new MessPck(comid, emess, sign).getPck());
+			peer.sendMess(new MessPck(comid, emess, sign));
 		}
 	}
 	

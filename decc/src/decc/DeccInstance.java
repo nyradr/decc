@@ -130,8 +130,8 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		if(p != null){
 			// abort all roads passing by this peer
 			for(Road r : roads.getPeer(p)){
-				r.peerA.sendEroutePdc((new EroutedPck(r.getComid(), true)).getPck());
-				r.peerB.sendEroutePdc((new EroutedPck(r.getComid(), false)).getPck());
+				r.peerA.sendEroutePdc((new EroutedPck(r.getComid(), true)));
+				r.peerB.sendEroutePdc((new EroutedPck(r.getComid(), false)));
 				roads.remove(r);
 			}
 			
@@ -153,7 +153,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			Communication com = new Communication(comid, target, p, accman, userclb);
 			RoadPck rpck = new RoadPck(comid, this.accman.getUser().getName(), target);
 			
-			p.sendRoute(rpck.getPck());
+			p.sendRoute(rpck);
 			this.coms.add(com);
 		}
 		
@@ -359,7 +359,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 					MessPck mpck = new MessPck(rpck.getComid(),
 							MessPck.CMD_CFND,
 							accman.getUser().getPublicStr(), accman.getUser().getKeySign());
-					p.sendMess(mpck.getPck());
+					p.sendMess(mpck);
 					
 				}else
 					p.sendEroute(rpck.getComid());
@@ -368,7 +368,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 				for(Peer peer : this.pairs.values())	
 					if(peer != p){
 						this.roads.add(new Road(rpck.getComid(), p, peer));
-						peer.sendRoute(rpck.getPck());
+						peer.sendRoute(rpck);
 						this.userclb.onNewRoad(rpck.getComid(), p.getHostName(), peer.getHostName());
 					}
 				
@@ -459,7 +459,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 			List<Road> curroad = this.roads.getPeerComid(mpck.getComid(), p);
 			
 			if(!curroad.isEmpty())
-				curroad.get(0).roadFrom(p).sendMess(mpck.getPck());
+				curroad.get(0).roadFrom(p).sendMess(mpck);
 			else
 				System.out.println("Packet transmission error");
 		}else{
