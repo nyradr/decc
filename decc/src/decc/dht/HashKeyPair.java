@@ -10,15 +10,15 @@ import java.security.MessageDigest;
  */
 public class HashKeyPair {
 
-	private String keyhash;
+	private Key key;
 	private String value;
 	
 	/**
 	 * Get the hash of the key
 	 * @return
 	 */
-	public String getKeyHash(){
-		return keyhash;
+	public Key getKey(){
+		return key;
 	}
 	
 	/**
@@ -35,20 +35,14 @@ public class HashKeyPair {
 	 * @param value value to store
 	 * @return can return null when SHA-256 is not a valid hash algorithm
 	 */
-	public static HashKeyPair createNew(String key, String value){
+	public static HashKeyPair create(String key, String value){
 		HashKeyPair kpv = new HashKeyPair();
 		
-		try{
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			byte[] hkey = md.digest(key.getBytes());
-			BigInteger bihkey = new BigInteger(hkey);
-			
-			kpv.keyhash = bihkey.toString(16);
-			kpv.value = value;
-		}catch(Exception e){
-			e.printStackTrace();
+		kpv.key = Key.create(key);
+		if(kpv.key == null)	// just in case key creation return null
 			kpv = null;
-		}
+		else
+			kpv.value = value;
 		
 		return kpv;
 	}
@@ -59,9 +53,9 @@ public class HashKeyPair {
 	 * @param value value to store
 	 * @return
 	 */
-	public static HashKeyPair create(String hkey, String value){
+	public static HashKeyPair load(String hkey, String value){
 		HashKeyPair kpv = new HashKeyPair();
-		kpv.keyhash = hkey;
+		kpv.key = Key.load(hkey);
 		kpv.value = value;
 		
 		return kpv;

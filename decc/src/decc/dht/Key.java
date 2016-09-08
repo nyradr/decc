@@ -23,6 +23,9 @@ public class Key {
 		return key;
 	}
 	
+	/**
+	 * Return hexadecimal hash value of the key
+	 */
 	@Override
 	public String toString(){
 		return key.toString(radix);
