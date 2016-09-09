@@ -63,4 +63,20 @@ public class Peer extends Thread{
 			sock.close();
 		}
 	}
+
+	/**
+	 * Send message to the peer
+	 * @param mess message to send
+	 */
+	public void send(String mess){
+		try{
+			if(!mess.isEmpty()){
+				if(mess.charAt(mess.length() -1) != '\0')
+					mess += '\0';
+				sock.getOutputStream().write(mess.getBytes());
+			}
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+	}
 }
