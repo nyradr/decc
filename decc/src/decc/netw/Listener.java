@@ -1,8 +1,10 @@
 package decc.netw;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 /**
  * Asynchronous listener for new TCP connection
@@ -80,5 +82,17 @@ public class Listener extends Thread{
 			isRunning = false;
 			serv.close();
 		}
+	}
+	
+	/**
+	 * Connect to new peer
+	 * @param host host name or IP address
+	 * @return new peer instance
+	 * @throws IOException
+	 */
+	public Peer connect(String host) throws IOException{
+		Socket sock = new Socket(host, serv.getLocalPort());
+		Peer p = new Peer(peerclb, sock);
+		return p;
 	}
 }

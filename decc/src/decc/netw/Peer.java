@@ -83,4 +83,12 @@ public class Peer extends Thread{
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Get the host name or Ip
+	 * @return
+	 */
+	public String getHostName(){
+		return sock.getInetAddress().getHostAddress();
+	}
 }
