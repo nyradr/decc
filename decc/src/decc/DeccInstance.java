@@ -2,7 +2,6 @@ package decc;
 
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.security.KeyFactory;
@@ -16,11 +15,12 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import javax.crypto.spec.SecretKeySpec;
-
 import decc.accounts.Account;
 import decc.accounts.AccountsManager;
 import decc.accounts.Contact;
+import decc.netw.IListenerClb;
+import decc.netw.IPeerReceive;
+import decc.netw.Listener;
 import decc.options.Crypto;
 import decc.options.Options;
 import decc.options.OptionsBuilder;
@@ -35,16 +35,13 @@ import decc.ui.IDeccUser;
  * Instance of the decc protocol<br>
  * @author nyradr
  */
-class DeccInstance extends Thread implements IPeerReceive, IDecc{
+class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	
-	private ServerSocket serv;			// serveur
-	private int port;					// port
+	Listener netw;						// network listener
 	private String ip;					// public ip
 	
 	//private String name;				//user name
 	private AccountsManager accman;		// accounts manager
-	
-	private boolean isRunning;			//for the thread
 	
 	private Map<String, Peer> pairs;	//list of connected peers
 	
@@ -56,7 +53,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	
 	/**
 	 * ctor
-	 * @param port tcp port
+	 * @param port TCP port
 	 * @param name user name
 	 * @param clb callback
 	 * @throws IOException error when the socket is open
@@ -66,17 +63,13 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	public DeccInstance(int port, String name, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
 		this.options = OptionsBuilder.getDefault();
 		
+		netw = new Listener(this, this, port);
 		Account user = Account.create(name, Crypto.DEF_RSA_LEN);
 		accman = new AccountsManager(user);
-		
-		this.serv = new ServerSocket(port);
-		serv.setSoTimeout(5000);
 		
 		this.pairs = new TreeMap<String, Peer>();
 		this.coms = new ComsList();
 		this.roads = new RoadList();
-		
-		this.port = port;
 		
 		this.userclb = clb;
 	}
@@ -84,12 +77,16 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	/// IDecc
 	
 	@Override
+	public void start() {
+		netw.start();
+	}
+	
+	@Override
 	public void close(){
 		
 		// close server
 		try {
-			isRunning = false;
-			serv.close();
+			netw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -111,7 +108,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	@Override
 	public boolean connect(String host){
 		try{
-			Peer pair = new Peer(this, host, this.port);
+			Peer pair = (Peer) netw.connect(host);
 			pairs.put(pair.getHostName(), pair);
 		
 			if(pairs.size() == 1 && ip != null)
@@ -224,34 +221,22 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 		return roads.roads.toArray(new String[0]);
 	}
 	
-	/// DeccInstance functions
+	/// Listener
 	
-	public void run(){
-		this.isRunning = true;
-		System.out.println("Start Server");
-		
-		while(this.isRunning){
-			try {
-				Socket sock = serv.accept();
-				if(pairs.size() < options.maxPeers()){
-					Peer pair = new Peer(this, sock);
-					pairs.put(pair.getHostName(), pair);
-					userclb.onNewPeer(pair.getHostName());
-				}else
-					sock.close();
-			} catch (SocketTimeoutException te){
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
+	@Override
+	public void onNewPeer(decc.netw.Peer p) {
+		if(pairs.size() < options.maxPeers()){
+			pairs.put(p.getHostName(), (Peer) p);
+			userclb.onNewPeer(p.getHostName());
 		}
 	}
-	
+		
 	/// IPeer receive
 	
 	@Override
-	public void received(Peer p, String m) {
+	public void onPeerReceive(decc.netw.Peer peer, String m) {
+		Peer p = (Peer) peer;
+		
 		System.out.println(p.getHostName() + " : " + m);
 		
 		Command cmd = Command.parse(m);
@@ -290,7 +275,8 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 	}
 	
 	@Override
-	public void deco(Peer p) {
+	public void onPeerDeco(decc.netw.Peer peer) {
+		Peer p = (Peer) peer;
 		System.out.println("Peer deco : " + p.getHostName());
 		
 		try {
@@ -548,5 +534,7 @@ class DeccInstance extends Thread implements IPeerReceive, IDecc{
 					pe.sendBrcast(args);
 		}
 	}
+
+
 	
 }
