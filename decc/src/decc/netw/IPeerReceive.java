@@ -12,4 +12,10 @@ public interface IPeerReceive {
 	 * @param mess message (as a string)
 	 */
 	public void onPeerReceive(Peer p, String mess);
+	
+	/**
+	 * Produced when a peer is closed
+	 * @param p peer
+	 */
+	public void onPeerDeco(Peer p);
 }

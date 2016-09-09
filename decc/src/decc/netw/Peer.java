@@ -1,13 +1,66 @@
 package decc.netw;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
-public class Peer {
+/**
+ * Represent a network peer
+ * Asynchronous listening for data
+ * @author nyradr
+ */
+public class Peer extends Thread{
 
 	private Socket sock;
 	
-	public Peer(Socket sock){
-		
+	private boolean isRunning;
+	private String recv;
+	private IPeerReceive clb;
+	
+	public Peer(IPeerReceive clb, Socket sock){
+		this.sock = sock;
+		this.clb = clb;		
 	}
 	
+	public void run(){
+		this.isRunning = true;
+		this.recv = "";
+		
+		while(this.isRunning){
+			try {
+				int data = sock.getInputStream().read();
+				
+				if(data != -1){	
+					if(data == '\0'){
+						System.out.println("Recv(" + recv.length() + ") " + this.recv);	//debug
+						this.clb.onPeerReceive(this, this.recv);
+						this.recv = "";
+					}else
+						this.recv += (char) data;
+				}else	// end of stream == deco
+					clb.onPeerDeco(this);
+			} catch (SocketException e){	// socket error : disconnected?
+				e.printStackTrace();
+				isRunning = false;
+				clb.onPeerDeco(this);
+			} catch(SocketTimeoutException e){
+				
+			} catch (Exception e) {		//other error
+				e.printStackTrace();
+				this.recv = "";
+			}
+		}
+	}
+	
+	/**
+	 * Close the peer
+	 * @throws IOException
+	 */
+	public void close() throws IOException{
+		if(isRunning){
+			isRunning = false;
+			sock.close();
+		}
+	}
 }
