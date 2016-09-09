@@ -23,6 +23,10 @@ public class Peer extends Thread{
 		this.clb = clb;		
 	}
 	
+	/**
+	 * Listen for data from peer
+	 * send back data to callback
+	 */
 	public void run(){
 		this.isRunning = true;
 		this.recv = "";

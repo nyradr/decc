@@ -12,6 +12,7 @@ public class Listener extends Thread{
 	
 	private ServerSocket serv;
 	private IListenerClb clb;
+	private IPeerReceive peerclb;
 	
 	private boolean isRunning;
 	
@@ -22,8 +23,8 @@ public class Listener extends Thread{
 	 * @param port port to listen
 	 * @throws IOException produced when the port cannot be used
 	 */
-	public Listener(IListenerClb clb, int port) throws IOException{
-		init(clb, port, 5000);
+	public Listener(IListenerClb clb, IPeerReceive pclb, int port) throws IOException{
+		init(clb, pclb, port, 5000);
 	}
 	
 	/**
@@ -33,8 +34,8 @@ public class Listener extends Thread{
 	 * @param timeout timeout
 	 * @throws IOException
 	 */
-	public Listener(IListenerClb clb, int port, int timeout) throws IOException{
-		init(clb, port, timeout);
+	public Listener(IListenerClb clb, IPeerReceive pclb, int port, int timeout) throws IOException{
+		init(clb, pclb, port, timeout);
 	}
 	
 	/**
@@ -44,20 +45,24 @@ public class Listener extends Thread{
 	 * @param timeout
 	 * @throws IOException
 	 */
-	private void init(IListenerClb clb, int port, int timeout) throws IOException {
+	private void init(IListenerClb clb, IPeerReceive pclb, int port, int timeout) throws IOException {
 		serv = new ServerSocket(port);
 		serv.setSoTimeout(timeout);
 		this.clb = clb;
+		peerclb = pclb;
 		isRunning = false;
 	}
 	
+	/**
+	 * Listen for new peer
+	 */
 	public void run(){
 		isRunning = true;
 		
 		while(isRunning){
 			try{
 				Socket sock = serv.accept();
-				Peer p = new Peer(sock);
+				Peer p = new Peer(peerclb, sock);
 				
 				clb.onNewPeer(p);
 			}catch(Exception e){

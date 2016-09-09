@@ -4,7 +4,7 @@ package decc.netw;
  * Callback functions for Listener
  * @author nyradr
  */
-public interface IListenerClb {
+public interface IListenerClb{
 
 	/**
 	 * Called when a new peer is connected
