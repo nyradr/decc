@@ -9,15 +9,15 @@ class Road {
 	
 	private String comid;
 	
-	Peer peerA;
-	Peer peerB;
+	Node peerA;
+	Node peerB;
 	
 	/**
 	 * @param comid road identifier
 	 * @param a origin
 	 * @param b destination
 	 */
-	public Road(String comid, Peer a, Peer b){
+	public Road(String comid, Node a, Node b){
 		this.comid = comid;
 		this.peerA = a;
 		this.peerB = b;
@@ -26,14 +26,14 @@ class Road {
 	/**
 	 * @return get the origin
 	 */
-	public Peer getA(){
+	public Node getA(){
 		return this.peerA;
 	}
 	
 	/**
 	 * @return get the destination
 	 */
-	public Peer getB(){
+	public Node getB(){
 		return this.peerB;
 	}
 	
@@ -49,7 +49,7 @@ class Road {
 	 * @param p
 	 * @return null if p in not in the road
 	 */
-	public Peer roadFrom(Peer p){
+	public Node roadFrom(Node p){
 		if(p == peerA)
 			return peerB;
 		

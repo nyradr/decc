@@ -49,7 +49,7 @@ class RoadList {
 	 * @param p
 	 * @return
 	 */
-	public List<Road> getPeer(Peer p){
+	public List<Road> getPeer(Node p){
 		return (List<Road>) this.roads.stream()
 				.filter(x -> x.getA() == p || x.getB() == p)
 				.collect(Collectors.toList());
@@ -61,7 +61,7 @@ class RoadList {
 	 * @param p
 	 * @return
 	 */
-	public List<Road> getPeerComid(String comid, Peer p){
+	public List<Road> getPeerComid(String comid, Node p){
 		return (List<Road>) this.roads.stream()
 				.filter(x -> (x.getA() == p || x.getB() == p) && x.getComid().equals(comid))
 				.collect(Collectors.toList());

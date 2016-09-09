@@ -1,16 +1,10 @@
 package decc;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 
 import decc.netw.IPeerReceive;
+import decc.netw.Peer;
 import decc.packet.EroutedPck;
 import decc.packet.MessPck;
 import decc.packet.Packet;
@@ -21,58 +15,33 @@ import decc.packet.RoadPck;
  * @author nyradr
  *
  */
-class Peer extends decc.netw.Peer{
+class Node{
 	
-	public Peer(IPeerReceive clb, Socket sock) {
-		super(clb, sock);
+	private Peer peer;
+	
+	public Node(Peer p){
+		peer = p;
+		p.start();
 	}
 	
-	/**
-	 * Build new peer when the "server" receive connection
-	 * @param callback
-	 * @param sock
-	 * @throws IOException
-	 *
-	public Peer(IPeerReceive callback, Socket sock) throws IOException{
-		System.out.println("Co du pair " + sock.getInetAddress().toString());
-		
-		this.sock = sock;
-		sock.setSoTimeout(timeout);
-		this.callback = callback;
-			
-		this.stegin = this.sock.getInputStream();
-		this.stegout = this.sock.getOutputStream();
-		
-		this.sendIP();
-		
-		this.start();
-	}*/
+	public String getHostName(){
+		return peer.getHostName();
+	}
 	
-	/**
-	 * Create new pair and connect to it
-	 * @param callback
-	 * @param host
-	 * @param port
-	 * @throws UnknownHostException
-	 * @throws IOException
-	 *
-	public Peer(IPeerReceive callback, String host, int port) throws UnknownHostException, IOException, SocketTimeoutException{
-		this.sock = new Socket();
-		SocketAddress addr = new InetSocketAddress(host, port);
-		sock.connect(addr, timeout);
-		
-		this.callback = callback;
-		
-		this.stegin = this.sock.getInputStream();
-		this.stegout = this.sock.getOutputStream();
-		
-		sendIP();
-		
-		this.start();
-	}*/
+	public void close(){
+		try {
+			peer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void send(String data){
+		peer.send(data);
+	}
 	
 	private void sendIP(){
-		send(Command.IP.toString() + getHostName());
+		send(Command.IP.toString() + peer.getHostName());
 	}
 	
 	private void send(Command cmd, Packet pck){

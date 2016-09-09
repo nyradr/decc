@@ -2,8 +2,6 @@ package decc;
 
 
 import java.io.IOException;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -21,6 +19,7 @@ import decc.accounts.Contact;
 import decc.netw.IListenerClb;
 import decc.netw.IPeerReceive;
 import decc.netw.Listener;
+import decc.netw.Peer;
 import decc.options.Crypto;
 import decc.options.Options;
 import decc.options.OptionsBuilder;
@@ -43,7 +42,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	//private String name;				//user name
 	private AccountsManager accman;		// accounts manager
 	
-	private Map<String, Peer> pairs;	//list of connected peers
+	private Map<String, Node> pairs;	//list of connected peers
 	
 	private ComsList coms;				//current communications
 	private RoadList roads;				//current roads
@@ -67,7 +66,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 		Account user = Account.create(name, Crypto.DEF_RSA_LEN);
 		accman = new AccountsManager(user);
 		
-		this.pairs = new TreeMap<String, Peer>();
+		this.pairs = new TreeMap<String, Node>();
 		this.coms = new ComsList();
 		this.roads = new RoadList();
 		
@@ -99,7 +98,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 		}
 		
 		// disconnect all peer
-		for(Peer p : pairs.values()){
+		for(Node p : pairs.values()){
 			disconnect(p.getHostName());
 		}
 			
@@ -108,21 +107,23 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	@Override
 	public boolean connect(String host){
 		try{
-			Peer pair = (Peer) netw.connect(host);
+			Node pair = new Node(netw.connect(host));
 			pairs.put(pair.getHostName(), pair);
 		
 			if(pairs.size() == 1 && ip != null)
 				pair.sendBrcast(ip);
 			
 			return true;
-		} catch(Exception e){}
+		} catch(Exception e){
+			e.printStackTrace();
+		}
 		
 		return false;
 	}
 	
 	@Override
 	public boolean disconnect(String host){
-		Peer p = pairs.get(host);
+		Node p = pairs.get(host);
 		
 		if(p != null){
 			// abort all roads passing by this peer
@@ -132,11 +133,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 				roads.remove(r);
 			}
 			
-			try {
-				p.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			p.close();
 		}
 		
 		return p != null;
@@ -146,7 +143,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	public String startCom(String target){
 		String comid = Communication.generateComid(target, this.accman.getUser().getName());
 		
-		for(Peer p : pairs.values()){
+		for(Node p : pairs.values()){
 			Communication com = new Communication(comid, target, p, accman, userclb);
 			RoadPck rpck = new RoadPck(comid, this.accman.getUser().getName(), target);
 			
@@ -224,9 +221,9 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	/// Listener
 	
 	@Override
-	public void onNewPeer(decc.netw.Peer p) {
+	public void onNewPeer(Peer p) {
 		if(pairs.size() < options.maxPeers()){
-			pairs.put(p.getHostName(), (Peer) p);
+			pairs.put(p.getHostName(), new Node(p));
 			userclb.onNewPeer(p.getHostName());
 		}
 	}
@@ -234,8 +231,8 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	/// IPeer receive
 	
 	@Override
-	public void onPeerReceive(decc.netw.Peer peer, String m) {
-		Peer p = (Peer) peer;
+	public void onPeerReceive(Peer peer, String m) {
+		Node p = pairs.get(peer.getHostName());
 		
 		System.out.println(p.getHostName() + " : " + m);
 		
@@ -275,38 +272,34 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	}
 	
 	@Override
-	public void onPeerDeco(decc.netw.Peer peer) {
-		Peer p = (Peer) peer;
+	public void onPeerDeco(Peer peer) {
+		Node p = pairs.get(peer.getHostName());
 		System.out.println("Peer deco : " + p.getHostName());
 		
-		try {
-			p.close();
-			pairs.remove(p.getHostName());
-			
-			// clean roads passing through this peer
-			// just in case of dirty disconnection without peer cleanup
-			for(Road r : roads.getPeer(p)){
-				r.roadFrom(p).sendEroutePdc(new EroutedPck(r.getComid(), true).toString());
-				roads.remove(r);
-			}
-			
-			// close all roads passing through this peer
-			for(Communication c : coms.getPeer(p)){
-				coms.remove(c);
-				// try to retrace the road
-				if(!pairs.isEmpty())
-					startCom(c.getTarget());
-			}
-			
-			if(ip != null){
-				for(Peer pe : pairs.values())	//one less, ten found : send broadcast
-					pe.sendBrcast(ip);
-			}
-			
-			userclb.onPeerDeco(p.getHostName());
-		} catch (IOException e) {
-			e.printStackTrace();
+		p.close();
+		pairs.remove(p.getHostName());
+		
+		// clean roads passing through this peer
+		// just in case of dirty disconnection without peer cleanup
+		for(Road r : roads.getPeer(p)){
+			r.roadFrom(p).sendEroutePdc(new EroutedPck(r.getComid(), true).toString());
+			roads.remove(r);
 		}
+		
+		// close all roads passing through this peer
+		for(Communication c : coms.getPeer(p)){
+			coms.remove(c);
+			// try to retrace the road
+			if(!pairs.isEmpty())
+				startCom(c.getTarget());
+		}
+		
+		if(ip != null){
+			for(Node pe : pairs.values())	//one less, ten found : send broadcast
+				pe.sendBrcast(ip);
+		}
+		
+		userclb.onPeerDeco(p.getHostName());
 		
 	}
 	
@@ -316,7 +309,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	 * @param p
 	 * @param args
 	 */
-	private void onIP(Peer p, String args){
+	private void onIP(Node p, String args){
 		this.ip = args;	//TODO coherence control
 	}
 	
@@ -325,7 +318,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	 * @param p
 	 * @param args
 	 */
-	private void onRoute(Peer p, String args){
+	private void onRoute(Node p, String args){
 		RoadPck rpck = new RoadPck(args);
 		System.out.println("Try to trace road from " + p.getHostName() + " with comid " + rpck.getComid() + " ori " + rpck.getOri() + " dest " + rpck.getDest());
 		
@@ -351,7 +344,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 					p.sendEroute(rpck.getComid());
 			}else{
 				//transmission to all
-				for(Peer peer : this.pairs.values())	
+				for(Node peer : this.pairs.values())	
 					if(peer != p){
 						this.roads.add(new Road(rpck.getComid(), p, peer));
 						peer.sendRoute(rpck);
@@ -373,7 +366,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	 * @param p
 	 * @param args
 	 */
-	private void onEroute(Peer p, String args){
+	private void onEroute(Node p, String args){
 		System.out.println("Eroute message from " + p.getHostName() + " for comid " + args);
 		
 		List<Road> curroads = this.roads.getComid(args);
@@ -408,7 +401,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	 * @param p
 	 * @param args
 	 */
-	private void onEroutePdc(Peer p, String args){
+	private void onEroutePdc(Node p, String args){
 		EroutedPck erpck = new EroutedPck(args);
 		
 		if(coms.getPeerComid(erpck.getComid(), p).isEmpty()){			// simple node on the road -> route the message
@@ -436,7 +429,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	 * @param p
 	 * @param args
 	 */
-	private void onMess(Peer p, String args){
+	private void onMess(Node p, String args){
 		MessPck mpck = new MessPck(args);
 		System.out.println("Routing message from " + p.getHostName() + " say " + mpck.getData());
 		
@@ -461,7 +454,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	 * Manage message internal commands
 	 * @param mp
 	 */
-	private void onMessArrived(MessPck mpck, Peer p){
+	private void onMessArrived(MessPck mpck, Node p){
 		List<Communication> comsComid = coms.getComid(mpck.getComid());
 		Communication comComid = coms.getComidLinked(mpck.getComid());
 		
@@ -516,7 +509,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	 * @param p peer
 	 * @param args broadcast ip
 	 */
-	private void onBrcast(Peer p, String args){
+	private void onBrcast(Node p, String args){
 		boolean co = false;
 		
 		if(!args.equals(ip) && pairs.size() < options.maxPeers() && !pairs.containsKey(args))
@@ -529,7 +522,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 
 	
 		if(!co){
-			for(Peer pe : pairs.values())
+			for(Node pe : pairs.values())
 				if(p != pe)
 					pe.sendBrcast(args);
 		}

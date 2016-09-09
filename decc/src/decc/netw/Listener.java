@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketTimeoutException;
 
 /**
  * Asynchronous listener for new TCP connection
@@ -65,8 +66,8 @@ public class Listener extends Thread{
 			try{
 				Socket sock = serv.accept();
 				Peer p = new Peer(peerclb, sock);
-				
 				clb.onNewPeer(p);
+			}catch(SocketTimeoutException t){
 			}catch(Exception e){
 				e.printStackTrace();
 			}

@@ -77,7 +77,7 @@ class ComsList {
 	 * @param p peer to search
 	 * @return
 	 */
-	public List<Communication> getPeer(Peer p){
+	public List<Communication> getPeer(Node p){
 		return (List<Communication>) this.coms.stream().filter(x -> x.getPeer() == p).collect(Collectors.toList());
 	}
 	
@@ -88,7 +88,7 @@ class ComsList {
 	 * @return list of communication found<br>
 	 * 		if no error should be of size 1
 	 */
-	public List<Communication> getPeerComid(String comid, Peer p){
+	public List<Communication> getPeerComid(String comid, Node p){
 		return (List<Communication>) this.coms.stream()
 				.filter(x -> x.getPeer() == p && x.getComid().equals(comid))
 				.collect(Collectors.toList());

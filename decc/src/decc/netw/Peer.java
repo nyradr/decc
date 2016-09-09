@@ -67,7 +67,7 @@ public class Peer extends Thread{
 			sock.close();
 		}
 	}
-
+	
 	/**
 	 * Send message to the peer
 	 * @param mess message to send

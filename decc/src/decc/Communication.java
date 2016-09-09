@@ -29,7 +29,7 @@ class Communication implements ICom{
 	
 	private DiffieHellman dekey;
 	
-	private Peer peer;		// first peer
+	private Node peer;		// first peer
 	
 	private boolean linked;	// true if a link is established to the target
 	
@@ -40,7 +40,7 @@ class Communication implements ICom{
 	 * @param comid communication comid
 	 * @param peer first peer
 	 */
-	public Communication(String comid, String target, Peer peer, AccountsManager accman, IComClb clb){
+	public Communication(String comid, String target, Node peer, AccountsManager accman, IComClb clb){
 		this.comid = comid;
 		this.target = target;
 		this.peer = peer;
@@ -68,7 +68,7 @@ class Communication implements ICom{
 	/**
 	 * @return first peer
 	 */
-	public Peer getPeer(){
+	public Node getPeer(){
 		return peer;
 	}
 	
