@@ -57,8 +57,12 @@ public class Key {
 	 * @return
 	 */
 	public static Key load(String hkey){
+		return Key.load(new BigInteger(hkey, radix));
+	}
+	
+	public static Key load(BigInteger hkey){
 		Key k = new Key();
-		k.key = new BigInteger(hkey, radix);
+		k.key = hkey;
 		return k;
 	}
 }
