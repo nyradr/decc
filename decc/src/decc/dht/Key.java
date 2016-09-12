@@ -52,6 +52,15 @@ public class Key {
 	}
 	
 	/**
+	 * Test if 2 keys are equals
+	 * @param k
+	 * @return true is the keys are equals
+	 */
+	public boolean equals(Key k){
+		return key.compareTo(k.getKey()) == 0;
+	}
+	
+	/**
 	 * Load hash as key
 	 * @param hkey hash (SHA-256)
 	 * @return

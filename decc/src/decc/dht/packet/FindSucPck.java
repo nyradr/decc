@@ -21,6 +21,22 @@ public class FindSucPck extends Packet{
 		extract(data);
 	}
 	
+	/**
+	 * Get DHT key
+	 * @return
+	 */
+	public Key getKey(){
+		return key;
+	}
+	
+	/**
+	 * Get sender IP
+	 * @return
+	 */
+	public String getIp(){
+		return ip;
+	}
+	
 	@Override
 	public String getPck() {
 		return key.toString() + "\n" + ip;
