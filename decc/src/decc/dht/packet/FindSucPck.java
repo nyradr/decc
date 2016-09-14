@@ -6,55 +6,37 @@ import decc.packet.Packet;
 /**
  * Packet for find successor request
  * @author nyradr
+ *
  */
 public class FindSucPck extends Packet{
 
-	private Key key;
-	private String ip;
+	Key key;
 	
-	public FindSucPck(Key k, String ip) {
+	/**
+	 * Create new packet
+	 * @param k key to find
+	 */
+	public FindSucPck(Key k){
 		key = k;
-		this.ip = ip;
 	}
 	
+	/**
+	 * Load packet from received data
+	 * @param data
+	 */
 	public FindSucPck(String data) {
 		extract(data);
 	}
 	
-	/**
-	 * Get DHT key
-	 * @return
-	 */
-	public Key getKey(){
-		return key;
-	}
-	
-	/**
-	 * Get sender IP
-	 * @return
-	 */
-	public String getIp(){
-		return ip;
-	}
-	
 	@Override
 	public String getPck() {
-		return key.toString() + "\n" + ip;
+		return key.toString();
 	}
 
 	@Override
 	public boolean extract(String args) {
-		boolean suc = false;
-		int i = args.indexOf("\n");
-		
-		if(i > 0){
-			key = Key.load(args.substring(0, i));
-			ip = args.substring(i);
-			suc = true;
-		}
-		
-		return suc;
+		key = Key.load(args);
+		return key != null;
 	}
 
-	
 }
