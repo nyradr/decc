@@ -10,7 +10,7 @@ import decc.packet.Packet;
  */
 public class FindSucPck extends Packet{
 
-	Key key;
+	private Key key;
 	
 	/**
 	 * Create new packet
@@ -18,6 +18,10 @@ public class FindSucPck extends Packet{
 	 */
 	public FindSucPck(Key k){
 		key = k;
+	}
+	
+	public Key getKey(){
+		return key;
 	}
 	
 	/**

@@ -25,7 +25,7 @@ public class DhtRoutingTable {
 	
 	/**
 	 * Apply delay on the routing table
-	 * This will delete all out dated routes
+	 * This will delete all out dated roads
 	 * @param s
 	 */
 	private void applyDelay(long s){
@@ -82,6 +82,8 @@ public class DhtRoutingTable {
 	 * @return
 	 */
 	public Set<Key> get(Key k){
+		clean();
+		
 		Map<Key, Long> rts = routes.get(k);
 		Set<Key> ks = null;
 		if(rts != null)	// key not found security
