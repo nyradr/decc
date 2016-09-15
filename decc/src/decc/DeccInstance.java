@@ -2,20 +2,28 @@ package decc;
 
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import decc.accounts.Account;
 import decc.accounts.AccountsManager;
 import decc.accounts.Contact;
+import decc.dht.CurrentNode;
+import decc.dht.DhtRoutingTable;
+import decc.dht.Key;
+import decc.dht.packet.FindSucPck;
+import decc.dht.packet.FindSucRPck;
 import decc.netw.IListenerClb;
 import decc.netw.IPeerReceive;
 import decc.netw.Listener;
@@ -34,7 +42,7 @@ import decc.ui.IDeccUser;
  * Instance of the decc protocol<br>
  * @author nyradr
  */
-class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
+class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, IDecc{
 	
 	Listener netw;						// network listener
 	private String ip;					// public ip
@@ -46,6 +54,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	
 	private ComsList coms;				//current communications
 	private RoadList roads;				//current roads
+	private DhtRoutingTable dhtroads;	//current DHT roads
 	
 	private IDeccUser userclb;			//callback for the user
 	private Options options;			//decc options
@@ -60,6 +69,7 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	 * @throws NoSuchAlgorithmException 
 	 */
 	public DeccInstance(int port, String name, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
+		
 		this.options = OptionsBuilder.getDefault();
 		
 		netw = new Listener(this, this, port);
@@ -69,8 +79,14 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 		this.pairs = new TreeMap<String, Node>();
 		this.coms = new ComsList();
 		this.roads = new RoadList();
+		this.dhtroads = new DhtRoutingTable();
 		
 		this.userclb = clb;
+		
+		// create empty DHT ring
+		key = Key.create(name);
+		predecessor = null;
+		successor = key;
 	}
 	
 	/// IDecc
@@ -107,11 +123,14 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	@Override
 	public boolean connect(String host){
 		try{
-			Node pair = new Node(netw.connect(host));
-			pairs.put(pair.getHostName(), pair);
-		
-			if(pairs.size() == 1 && ip != null)
-				pair.sendBrcast(ip);
+			Node peer = new Node(netw.connect(host));
+			peer.sendIP(key);
+			
+			pairs.put(peer.getHostName(), peer);
+			
+			// empty ring -> join ring
+			if(predecessor == null && successor == key)
+				peer.sendFindSuccessor(new FindSucPck(key));
 			
 			return true;
 		} catch(Exception e){
@@ -223,12 +242,51 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 	@Override
 	public void onNewPeer(Peer p) {
 		if(pairs.size() < options.maxPeers()){
-			pairs.put(p.getHostName(), new Node(p));
+			Node n = new Node(p);
+			n.sendIP(key);
+			
+			pairs.put(p.getHostName(), n);
 			userclb.onNewPeer(p.getHostName());
+		}else{
+			try{
+				p.close();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 	}
 		
 	/// IPeer receive
+	
+	@Override
+	public void onPeerDeco(Peer peer) {
+		Node p = pairs.get(peer.getHostName());
+		System.out.println("Peer deco : " + p.getHostName());
+		
+		p.close();
+		pairs.remove(p.getHostName());
+		
+		// clean roads passing through this peer
+		// just in case of dirty disconnection without peer cleanup
+		for(Road r : roads.getPeer(p)){
+			r.roadFrom(p).sendEroutePdc(new EroutedPck(r.getComid(), true).toString());
+			roads.remove(r);
+		}
+		
+		// close all roads passing through this peer
+		for(Communication c : coms.getPeer(p)){
+			coms.remove(c);
+			// try to retrace the road
+			if(!pairs.isEmpty())
+				startCom(c.getTarget());
+		}
+		
+		userclb.onPeerDeco(p.getHostName());
+		
+		// DHT check predecessor
+		if(p.getKey() == predecessor)
+			predecessor = null;
+	}
 	
 	@Override
 	public void onPeerReceive(Peer peer, String m) {
@@ -260,46 +318,17 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 			onIP(p, args);
 			break;
 			
-		case BRCAST:
-			onBrcast(p, args);
+		case DFINDSUC:
+			onFindSuccessor(p, args);
 			break;
+			
+		case DFINDSUCR:
+			onFindSuccessorR(p, args);
 			
 		default:
 			System.out.println("Unknow packet receveid from " + p.getHostName() + " with " + m);
 			break;
 		}
-		
-	}
-	
-	@Override
-	public void onPeerDeco(Peer peer) {
-		Node p = pairs.get(peer.getHostName());
-		System.out.println("Peer deco : " + p.getHostName());
-		
-		p.close();
-		pairs.remove(p.getHostName());
-		
-		// clean roads passing through this peer
-		// just in case of dirty disconnection without peer cleanup
-		for(Road r : roads.getPeer(p)){
-			r.roadFrom(p).sendEroutePdc(new EroutedPck(r.getComid(), true).toString());
-			roads.remove(r);
-		}
-		
-		// close all roads passing through this peer
-		for(Communication c : coms.getPeer(p)){
-			coms.remove(c);
-			// try to retrace the road
-			if(!pairs.isEmpty())
-				startCom(c.getTarget());
-		}
-		
-		if(ip != null){
-			for(Node pe : pairs.values())	//one less, ten found : send broadcast
-				pe.sendBrcast(ip);
-		}
-		
-		userclb.onPeerDeco(p.getHostName());
 		
 	}
 	
@@ -504,28 +533,111 @@ class DeccInstance implements IListenerClb, IPeerReceive, IDecc{
 		}
 	}
 	
-	/**
-	 * When a broadcast message is received
-	 * @param p peer
-	 * @param args broadcast ip
-	 */
-	private void onBrcast(Node p, String args){
-		boolean co = false;
-		
-		if(!args.equals(ip) && pairs.size() < options.maxPeers() && !pairs.containsKey(args))
-			if(Math.random() >= 0.0){ // 1 probability : debug
-				try{
-					connect(args);
-					co = true;
-				}catch(Exception e){}
-			}
-
+	/// DHT
 	
-		if(!co){
-			for(Node pe : pairs.values())
-				if(p != pe)
-					pe.sendBrcast(args);
+	/**
+	 * Get the connected node with this key
+	 * @param key key to find
+	 * @return Node or null (if no node with this key)
+	 */
+	private Node getNodeWithKey(Key key){
+		Node n = null;
+		
+		List<Node> ln = pairs.values().parallelStream()
+			.filter(x -> x.getKey().equals(key))
+			.collect(Collectors.toList());
+	
+		if(!ln.isEmpty())
+			n = ln.get(0);
+		
+		return n;
+	}
+	
+	/**
+	 * When a find successor message is received
+	 * @param p peer
+	 * @param args message
+	 */
+	private void onFindSuccessor(Node p, String args){
+		FindSucPck pck = new FindSucPck(args);
+		
+		Key k = findSuccessor(pck.getKey());
+		Node n = getNodeWithKey(k);
+		
+		if(k.equals(successor)){
+			String ip = "";
+			if(n == null)
+				ip = this.ip;
+			else
+				ip = n.getHostName();
+		
+			p.sendFindSuccessorRep(new FindSucRPck(pck.getKey(), ip));
+		}else{
+			// not found
+			dhtroads.put(pck.getKey(), p.getKey());
+			n.sendFindSuccessor(pck);
 		}
+		
+	}
+
+	private void onFindSuccessorR(Node p, String args){
+		FindSucRPck pck = new FindSucRPck(args);
+		Set<Key> ks = dhtroads.get(pck.getKey());
+		
+		if(ks.contains(key)){
+			// reached
+			connect(pck.getIp());
+			ks.remove(key);
+		}
+		
+		// transmit to all
+		if(!ks.isEmpty()){
+			for(Key k : ks){
+				Node n = getNodeWithKey(k);
+				if(n != null)
+					n.sendFindSuccessorRep(pck);
+				ks.remove(k);
+			}
+		}
+	}
+	
+	@Override
+	public BigInteger finger(int k){
+		BigInteger finger = super.finger(k);
+		BigInteger matching = null;
+		
+		// find the most valid node matching finger[k]
+		for(Node n : pairs.values()){
+			BigInteger nk = n.getKey().getKey();
+			
+			if(finger.compareTo(nk) <= 0){
+				if(matching == null || nk.compareTo(matching) < 0)
+					matching = nk;
+			}
+		}
+		
+		return matching;
+	}
+	
+	@Override
+	public Key findSuccessor(Key id) {
+		Key suc;
+		
+		if(	id.getKey().compareTo(key.getKey()) > 0
+			&& id.getKey().compareTo(successor.getKey()) <= 0)
+			suc = successor;
+		else
+			// /!\ need to send find_successor request on this key 
+			suc = Key.load(closestPrecedingNode(id));
+		
+		return suc;
+	}
+
+	@Override
+	public void notify(Key id) {
+		if (predecessor == null ||
+			(id.getKey().compareTo(predecessor.getKey()) > 0 && id.getKey().compareTo(key.getKey()) < 0))
+			predecessor = id;
 	}
 
 
