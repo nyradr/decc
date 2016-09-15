@@ -7,9 +7,9 @@ import decc.packet.Packet;
  * Packet that contain a DHT key
  * @author nyradr
  */
-class KeyPck extends Packet{
+abstract class KeyPck extends Packet{
 	
-	private Key key;
+	protected Key key;
 	
 	/**
 	 * Create new packet
@@ -34,8 +34,6 @@ class KeyPck extends Packet{
 	public Key getKey(){
 		return key;
 	}
-	
-	
 	
 	@Override
 	public String getPck() {

@@ -24,6 +24,8 @@ import decc.dht.DhtRoutingTable;
 import decc.dht.Key;
 import decc.dht.packet.FindSucPck;
 import decc.dht.packet.FindSucRPck;
+import decc.dht.packet.NotifyPck;
+import decc.dht.packet.StabilizeRPck;
 import decc.netw.IListenerClb;
 import decc.netw.IPeerReceive;
 import decc.netw.Listener;
@@ -580,6 +582,11 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		
 	}
 
+	/**
+	 * When a find successor request succeed
+	 * @param p
+	 * @param args
+	 */
 	private void onFindSuccessorR(Node p, String args){
 		FindSucRPck pck = new FindSucRPck(args);
 		Set<Key> ks = dhtroads.get(pck.getKey());
@@ -601,6 +608,66 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		}
 	}
 	
+	/**
+	 * When a stabilize request come
+	 * This node predecessor must be returned
+	 * @param p
+	 * @param args
+	 */
+	private void onStabilize(Node p, String args){
+		if(predecessor != null){
+			Node pred = getNodeWithKey(predecessor);
+			
+			if(pred != null)
+				p.sendStabilizeRep(new StabilizeRPck(predecessor, pred.getHostName()));
+		}
+	}
+	
+	/**
+	 * When a node answer the stabilize request
+	 * @param p
+	 * @param args
+	 */
+	private void onStabilizeRep(Node p, String args){
+		StabilizeRPck pck = new StabilizeRPck(args);
+		
+		// test consistency
+		if(pck.getKey().getKey().compareTo(key.getKey()) > 0 &&
+				pck.getKey().getKey().compareTo(successor.getKey()) < 0)
+			successor = pck.getKey();
+		
+		// get node
+		Node suc = getNodeWithKey(successor);
+		if(suc == null){
+			// connect if unknown node
+			connect(pck.getIp());
+			suc = getNodeWithKey(successor);
+		}
+		
+		// send request
+		suc.sendNotify(new NotifyPck(key));;
+	}
+	
+	/**
+	 * When a notify command is received
+	 * @param p
+	 * @param args
+	 */
+	private void onNotify(Node p, String args){
+		NotifyPck pck = new NotifyPck(args);
+		
+		notify(pck.getKey());
+	}
+	
+	/**
+	 * Stabilize the network
+	 * Ask to the successor about its predecessor and verify consistency
+	 */
+	public void stabilize(){
+		Node suc = getNodeWithKey(successor);
+		suc.sendStabilize();
+	}
+	
 	@Override
 	public BigInteger finger(int k){
 		BigInteger finger = super.finger(k);
@@ -619,6 +686,9 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		return matching;
 	}
 	
+	/**
+	 * Find the successor of key
+	 */
 	@Override
 	public Key findSuccessor(Key id) {
 		Key suc;
@@ -633,7 +703,9 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		return suc;
 	}
 
-	@Override
+	/**
+	 * id may be or predecessor
+	 */
 	public void notify(Key id) {
 		if (predecessor == null ||
 			(id.getKey().compareTo(predecessor.getKey()) > 0 && id.getKey().compareTo(key.getKey()) < 0))

@@ -6,6 +6,8 @@ import java.net.Socket;
 import decc.dht.Key;
 import decc.dht.packet.FindSucPck;
 import decc.dht.packet.FindSucRPck;
+import decc.dht.packet.NotifyPck;
+import decc.dht.packet.StabilizeRPck;
 import decc.netw.IPeerReceive;
 import decc.netw.Peer;
 import decc.packet.EroutedPck;
@@ -165,5 +167,26 @@ class Node extends decc.dht.Node{
 		send(Command.DFINDSUCR, pck);
 	}
 
+	/**
+	 * Send DHT stabilize request (get the node predecessor)
+	 */
+	public void sendStabilize(){
+		send(Command.DSTABI.toString());
+	}
 
+	/**
+	 * Answer to DHT stabilize request (key of the node predecessor)
+	 * @param pck
+	 */
+	public void sendStabilizeRep(StabilizeRPck pck){
+		send(Command.DSTABIR, pck);
+	}
+
+	/**
+	 * Send notify to successor node
+	 * @param pck
+	 */
+	public void sendNotify(NotifyPck pck){
+		send(Command.DNOTIF, pck);
+	}
 }
