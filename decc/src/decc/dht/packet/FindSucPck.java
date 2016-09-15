@@ -8,43 +8,14 @@ import decc.packet.Packet;
  * @author nyradr
  *
  */
-public class FindSucPck extends Packet{
+public class FindSucPck extends KeyPck{
 
-	private Key key;
-	
-	/**
-	 * Create new packet
-	 * @param k key to find
-	 */
-	public FindSucPck(Key k){
-		key = k;
-	}
-	
-	/**
-	 * Get the searched key
-	 * @return
-	 */
-	public Key getKey(){
-		return key;
-	}
-	
-	/**
-	 * Load packet from received data
-	 * @param data
-	 */
-	public FindSucPck(String data) {
-		extract(data);
-	}
-	
-	@Override
-	public String getPck() {
-		return key.toString();
+	public FindSucPck(Key k) {
+		super(k);
 	}
 
-	@Override
-	public boolean extract(String args) {
-		key = Key.load(args);
-		return key != null;
+	public FindSucPck(String data){
+		super(data);
 	}
 
 }
