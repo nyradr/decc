@@ -3,9 +3,13 @@ package decc;
 import java.io.IOException;
 import java.net.Socket;
 
+import decc.dht.Key;
+import decc.dht.packet.FindSucPck;
+import decc.dht.packet.FindSucRPck;
 import decc.netw.IPeerReceive;
 import decc.netw.Peer;
 import decc.packet.EroutedPck;
+import decc.packet.IpPck;
 import decc.packet.MessPck;
 import decc.packet.Packet;
 import decc.packet.RoadPck;
@@ -15,13 +19,29 @@ import decc.packet.RoadPck;
  * @author nyradr
  *
  */
-class Node{
+class Node extends decc.dht.Node{
 	
 	private Peer peer;
 	
 	public Node(Peer p){
 		peer = p;
 		p.start();
+	}
+	
+	/**
+	 * Get the DHT key of this node
+	 * @return
+	 */
+	public Key getKey(){
+		return key;
+	}
+	
+	/**
+	 * Set the DHT key of this node
+	 * @param k
+	 */
+	public void setKey(Key k){
+		key = k;
 	}
 	
 	public String getHostName(){
@@ -36,16 +56,31 @@ class Node{
 		}
 	}
 	
+	/**
+	 * Send data to peer
+	 * @param data
+	 */
 	private void send(String data){
 		peer.send(data);
 	}
 	
-	private void sendIP(){
-		send(Command.IP.toString() + peer.getHostName());
-	}
-	
+	/**
+	 * Send command and packet to peer
+	 * @param cmd command
+	 * @param pck packet
+	 */
 	private void send(Command cmd, Packet pck){
 		send(cmd.toString() + pck.getPck());
+	}
+	
+	/**
+	 * Send IP command to peer
+	 * @param k
+	 */
+	public void sendIP(Key k){
+		IpPck pck = new IpPck(peer.getHostName(), k);
+		
+		send(Command.IP, pck);
 	}
 	
 	/**
@@ -112,11 +147,23 @@ class Node{
 		send(Command.MESS, pck);
 	}
 	
+	/// DHT
+	
 	/**
-	 * Send broadcast signal
-	 * @param ip peer IP
+	 * Send DHT find successor request to node
+	 * @param pck
 	 */
-	public void sendBrcast(String ip){
-		send(Command.BRCAST + ip);
+	public void sendFindSuccessor(FindSucPck pck){
+		send(Command.DFINDSUC, pck);
 	}
+	
+	/**
+	 * Send DHT find successor answer to node
+	 * @param pck
+	 */
+	public void sendFindSuccessorRep(FindSucRPck pck){
+		send(Command.DFINDSUCR, pck);
+	}
+
+
 }
