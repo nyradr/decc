@@ -20,6 +20,10 @@ public class FindSucPck extends Packet{
 		key = k;
 	}
 	
+	/**
+	 * Get the searched key
+	 * @return
+	 */
 	public Key getKey(){
 		return key;
 	}
