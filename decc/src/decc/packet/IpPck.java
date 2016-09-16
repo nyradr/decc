@@ -46,9 +46,9 @@ public class IpPck extends Packet{
 	@Override
 	public boolean extract(String args) {
 		int i = args.indexOf("\n");
-		if(i > 0){
+		if(i > 0 && i +1 < args.length()){
 			ip = args.substring(0, i);
-			id = Key.load(args.substring(i));
+			id = Key.load(args.substring(i +1));
 		}
 		
 		return i > 0 && args.length() - i > 0;

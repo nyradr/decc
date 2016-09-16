@@ -47,9 +47,9 @@ public class FindSucRPck extends Packet{
 		boolean suc = false;
 		int i = args.indexOf("\n");
 		
-		if(i > 0){
+		if(i > 0 && i +1 < args.length()){
 			key = Key.load(args.substring(0, i));
-			ip = args.substring(i);
+			ip = args.substring(i +1);
 			suc = true;
 		}
 		

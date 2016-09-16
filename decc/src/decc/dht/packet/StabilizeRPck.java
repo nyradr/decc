@@ -35,9 +35,9 @@ public class StabilizeRPck extends KeyPck{
 	public boolean extract(String data){
 		int i = data.indexOf("\n");
 		
-		if(i > 0){
+		if(i > 0 && i +1 < data.length()){
 			key = Key.load(data.substring(0, i));
-			ip = data.substring(i);
+			ip = data.substring(i +1);
 		}
 		
 		return i > 0 && ip.length() > 0;
