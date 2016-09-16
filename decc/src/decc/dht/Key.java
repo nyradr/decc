@@ -10,7 +10,7 @@ import java.security.MessageDigest;
  * @author voyez
  *
  */
-public class Key {
+public class Key implements Comparable<Key>{
 	private static int radix = 16;
 	
 	private BigInteger key;
@@ -74,4 +74,10 @@ public class Key {
 		k.key = hkey;
 		return k;
 	}
+
+	@Override
+	public int compareTo(Key o) {
+		return key.compareTo(o.getKey());
+	}
+	
 }

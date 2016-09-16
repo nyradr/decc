@@ -37,7 +37,6 @@ public class Peer extends Thread{
 				
 				if(data != -1){	
 					if(data == '\0'){
-						System.out.println("Recv(" + recv.length() + ") " + this.recv);	//debug
 						this.clb.onPeerReceive(this, this.recv);
 						this.recv = "";
 					}else
