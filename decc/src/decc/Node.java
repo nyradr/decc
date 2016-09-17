@@ -63,6 +63,8 @@ class Node extends decc.dht.Node{
 	 * @param data
 	 */
 	private void send(String data){
+		System.out.println(getHostName() + " < " + data);
+		
 		peer.send(data);
 	}
 	

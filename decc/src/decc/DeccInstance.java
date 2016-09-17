@@ -34,6 +34,7 @@ import decc.options.Crypto;
 import decc.options.Options;
 import decc.options.OptionsBuilder;
 import decc.packet.EroutedPck;
+import decc.packet.IpPck;
 import decc.packet.MessPck;
 import decc.packet.RoadPck;
 import decc.ui.ICom;
@@ -131,8 +132,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			pairs.put(peer.getHostName(), peer);
 			
 			// empty ring -> join ring
-			if(predecessor == null && successor == key)
+			if(predecessor == null && successor.equals(key)){
+				dhtroads.put(key, key);
 				peer.sendFindSuccessor(new FindSucPck(key));
+			}
 			
 			return true;
 		} catch(Exception e){
@@ -208,6 +211,13 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		try{
 			Account n = Account.create(name, Crypto.DEF_RSA_LEN);
 			accman.changeUser(n);
+			
+			Key nk = Key.create(name);
+			if(successor == key){
+				successor = nk;
+				key = nk;
+			}
+			
 		}catch (Exception e){
 			e.printStackTrace();
 		}
@@ -294,7 +304,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	public void onPeerReceive(Peer peer, String m) {
 		Node p = pairs.get(peer.getHostName());
 		
-		System.out.println(p.getHostName() + " : " + m);
+		System.out.println(p.getHostName() + " > " + m);
 		
 		Command cmd = Command.parse(m);
 		String args = m.substring(1);
@@ -326,6 +336,19 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			
 		case DFINDSUCR:
 			onFindSuccessorR(p, args);
+			break;
+			
+		case DNOTIF:
+			onNotify(p, args);
+			break;
+			
+		case DSTABI:
+			onStabilize(p, args);
+			break;
+			
+		case DSTABIR:
+			onStabilizeRep(p, args);
+			break;
 			
 		default:
 			System.out.println("Unknow packet receveid from " + p.getHostName() + " with " + m);
@@ -341,7 +364,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @param args
 	 */
 	private void onIP(Node p, String args){
-		this.ip = args;	//TODO coherence control
+		IpPck pck = new IpPck(args);
+		
+		this.ip = pck.getIp();
+		p.setKey(pck.getKey());
 	}
 	
 	/**
@@ -542,11 +568,12 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @param key key to find
 	 * @return Node or null (if no node with this key)
 	 */
-	private Node getNodeWithKey(Key key){
+	private Node getNodeWithKey(Key k){
 		Node n = null;
 		
 		List<Node> ln = pairs.values().parallelStream()
-			.filter(x -> x.getKey().equals(key))
+			.filter(x -> x != null)
+			.filter(x -> x.getKey().equals(k))
 			.collect(Collectors.toList());
 	
 		if(!ln.isEmpty())
@@ -576,6 +603,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			p.sendFindSuccessorRep(new FindSucRPck(pck.getKey(), ip));
 		}else{
 			// not found
+			
 			dhtroads.put(pck.getKey(), p.getKey());
 			n.sendFindSuccessor(pck);
 		}
@@ -592,9 +620,23 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		Set<Key> ks = dhtroads.get(pck.getKey());
 		
 		if(ks.contains(key)){
-			// reached
-			connect(pck.getIp());
+			// reached we find our successor
 			ks.remove(key);
+			
+			// get node with successor key (if already connected
+			Node nsuc = pairs.get(pck.getIp());
+			
+			if(nsuc == null){
+				if(connect(pck.getIp()))
+					nsuc = getNodeWithKey(pck.getKey());
+			}
+			
+			// successor node found
+			if(nsuc != null){
+				successor = nsuc.getKey();
+				nsuc.sendNotify(new NotifyPck(key));
+				System.out.println("Successor : " + successor.toString());
+			}
 		}
 		
 		// transmit to all
@@ -674,7 +716,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		BigInteger matching = null;
 		
 		// find the most valid node matching finger[k]
-		for(Node n : pairs.values()){
+		
+		for(String nip : pairs.keySet()){
+			Node n = pairs.get(nip);
+			
 			BigInteger nk = n.getKey().getKey();
 			
 			if(finger.compareTo(nk) <= 0){
@@ -710,8 +755,8 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		if (predecessor == null ||
 			(id.getKey().compareTo(predecessor.getKey()) > 0 && id.getKey().compareTo(key.getKey()) < 0))
 			predecessor = id;
+		
+		System.out.println("Predecessor : " + id.toString());
 	}
-
-
 	
 }
