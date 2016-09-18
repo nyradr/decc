@@ -42,17 +42,33 @@ public abstract class CurrentNode extends Node{
 		return key.getKey();
 	}
 	
+
 	/**
-	 *  Find the successor of key k
-	 * @param k
-	 * @return
+	 * Find the successor of key
 	 */
-	protected abstract Key findSuccessor(Key k);
+	public Key findSuccessor(Key id) {
+		Key suc;
+		
+		if(	id.getKey().compareTo(key.getKey()) > 0
+			&& id.getKey().compareTo(successor.getKey()) <= 0)
+			suc = successor;
+		else
+			// /!\ need to send find_successor request on this key 
+			suc = Key.load(closestPrecedingNode(id));
+		
+		return suc;
+	}
 	
 	/**
-	 * Notify the node with key k that we are his predecessor
-	 * @param k
+	 * id may be or predecessor
 	 */
-	protected abstract void notify(Key k);
+	public void notify(Key id) {
+		if (predecessor == null ||
+			(id.getKey().compareTo(predecessor.getKey()) > 0 && id.getKey().compareTo(key.getKey()) < 0))
+			predecessor = id;
+		
+		System.out.println("Predecessor : " + id.toString());
+	}
+	
 	
 }
