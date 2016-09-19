@@ -134,7 +134,12 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			// empty ring -> join ring
 			if(predecessor == null && successor.equals(key)){
 				dhtroads.put(key, key);
-				peer.sendFindSuccessor(new FindSucPck(key));
+				
+				// init finger table
+				for(int k = m; k >= 1; k--){
+					BigInteger finger = super.finger(k);
+					peer.sendFindSuccessor(new FindSucPck(Key.load(finger)));
+				}
 			}
 			
 			return true;
@@ -626,6 +631,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			// get node with successor key (if already connected
 			Node nsuc = pairs.get(pck.getIp());
 			
+			// connect to node (if not already connected)
 			if(nsuc == null){
 				if(connect(pck.getIp()))
 					nsuc = getNodeWithKey(pck.getKey());
@@ -633,13 +639,19 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			
 			// successor node found
 			if(nsuc != null){
-				successor = nsuc.getKey();
-				nsuc.sendNotify(new NotifyPck(key));
-				System.out.println("Successor : " + successor.toString());
+				Key suc = Key.load(finger(1));
+				
+				if(nsuc.getKey().equals(suc)){
+					// immediate successor
+					successor = nsuc.getKey();
+					nsuc.sendStabilize();
+					System.out.println("Successor : " + successor.toString());
+				}else
+					System.out.println("Finger found : " + nsuc.getKey().toString());
 			}
 		}
 		
-		// transmit to all
+		// transmit to all remaining
 		if(!ks.isEmpty()){
 			for(Key k : ks){
 				Node n = getNodeWithKey(k);
