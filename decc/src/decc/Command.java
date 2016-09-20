@@ -5,22 +5,28 @@ package decc;
  * @author nyradr
  */
 enum Command{
+	// basic networking
 	NONE		(0x00),		// No command
 	IP			(0x01),		// peer IP and my DHT ID	(IP, ID)
-	BRCAST		(0x02),		// broadcast message asking ip for connection	TODO : remove (useless with DHT)
 	
+	// routing
 	ROUTE		(0x10),		// trace a road	(COMID, ORI, DEST)
 	EROUTE		(0x11),		// abort road (COMID)
 	EROUTEPDC	(0x12),		// one peer of the road disconnected (COMID, FLAG)
 	
+	// messaging
 	MESS		(0x20),		// send a message through a road (COMID, MESS)
 	
-	
+	// DHT
 	DNOTIF		(0x30),		// send DHT notify request (ID)
 	DSTABI		(0x31),		// ask for predecessor
 	DSTABIR		(0x32),		// predecessor answer (ID)
 	DFINDSUC	(0x33),		// send find successor request (ID)
-	DFINDSUCR	(0x34);		// answer for find successor (ID, IP)
+	DFINDSUCR	(0x34),		// answer for find successor (ID, IP)
+	DSTORE		(0x35),		// store key/value in the DHT (KEY, VAL)
+	DSTORER		(0x36),		// notify if the storage success or fail (FLAG)
+	DLOOKUP		(0x37),		// search for key (KEY)
+	DLOOKUPR	(0x38);		// answer a lookup demand (KEY, VAL/NULL)
 	
 	private final char cmd;
 	

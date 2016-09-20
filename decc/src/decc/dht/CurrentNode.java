@@ -10,6 +10,11 @@ public abstract class CurrentNode extends Node{
 
 	protected Key successor;
 	protected Key predecessor;
+	protected DhtRoutingTable dhtroads;	//current DHT roads
+	
+	public CurrentNode(){
+		dhtroads = new DhtRoutingTable();
+	}
 	
 	/**
 	 * Calculate finger[k]
