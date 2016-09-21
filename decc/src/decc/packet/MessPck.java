@@ -5,7 +5,7 @@ package decc.packet;
  * @author nyradr
  *
  */
-public class MessPck extends Packet{
+public class MessPck implements IPacket{
 	/**
 	 * No command, normal message
 	 */

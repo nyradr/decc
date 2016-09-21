@@ -5,7 +5,7 @@ package decc.packet;
  * @author nyradr
  *
  */
-public abstract class Packet {
+public interface IPacket {
 	
 	/**
 	 * Get String representation of the packet

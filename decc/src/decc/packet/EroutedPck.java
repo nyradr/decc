@@ -4,7 +4,7 @@ package decc.packet;
  * Packet for the eroute peer deconnection
  * @author nyradr
  */
-public class EroutedPck extends Packet{
+public class EroutedPck implements IPacket{
 
 	private String comid;
 	private boolean flag;
