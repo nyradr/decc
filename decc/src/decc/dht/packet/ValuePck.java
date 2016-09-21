@@ -1,19 +1,18 @@
 package decc.dht.packet;
 
+import java.util.Date;
+
 import decc.dht.Value;
 import decc.packet.IPacket;
-import decc.packet.Packet;
 
 /**
  * Store a value in a packet
  * @author nyradr
  */
-class ValuePck implements IPacket {
+class ValuePck extends Value implements IPacket {
 	
-	private Value val;
-	
-	public ValuePck(Value v){
-		val = v;
+	public ValuePck(Date post, String val, String s){
+		super(post, val, s);
 	}
 	
 	public ValuePck(String data){
@@ -22,19 +21,25 @@ class ValuePck implements IPacket {
 
 	@Override
 	public String getPck() {
-		String str = val.getDate().toGMTString();
-		str += "\n" + val.getVal() + "\n" + val.getSign();
-		
+		String str = post.toGMTString();
+		str += "\n" + value + "\n" + sign;
 		return str;
 	}
 
 	@Override
 	public boolean extract(String args) {
-		int pos = args.indexOf("\n");
+		// TODO securisation
 		
+		int begin = 0;
+		int end = args.indexOf("\n");
+		post = new Date(Date.parse(args.substring(begin, end)));
 		
+		begin = end +1;
+		end = args.indexOf("\n", begin);
+		value = args.substring(begin, end);
 		
-		
+		sign = args.substring(end +1);
+		return true;
 	}
 	
 }

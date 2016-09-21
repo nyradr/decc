@@ -7,15 +7,17 @@ import java.util.Date;
  * @author nyradr
  */
 public class Value{
-	private Date post;
-	private String value;
-	private String sign;
+	protected Date post;
+	protected String value;
+	protected String sign;
 	
 	public Value(Date post, String val, String s){
 		this.post = post;
 		value = val;
 		sign = s;
 	}
+	
+	public Value(){}
 	
 	/**
 	 * Get the post date
