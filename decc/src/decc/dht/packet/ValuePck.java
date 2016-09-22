@@ -9,7 +9,7 @@ import decc.packet.Packet;
  * Store a value in a packet
  * @author nyradr
  */
-class ValuePck extends Packet {
+abstract class ValuePck extends Packet {
 	
 	private Value val;
 	
@@ -19,6 +19,16 @@ class ValuePck extends Packet {
 	
 	public ValuePck(String data){
 		extract(data);
+	}
+	
+	/**
+	 * Empty constructor
+	 * super.extract MUST be called by the top class
+	 */
+	protected ValuePck(){}
+	
+	public Value getVal(){
+		return val;
 	}
 
 	@Override
