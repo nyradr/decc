@@ -1,7 +1,7 @@
 package decc.dht.packet;
 
 import decc.dht.Key;
-import decc.packet.IPacket;
+import decc.packet.Packet;
 
 /**
  * Packet for find successor request

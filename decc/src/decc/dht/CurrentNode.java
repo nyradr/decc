@@ -1,6 +1,8 @@
 package decc.dht;
 
 import java.math.BigInteger;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Current DHT node used by the program
@@ -10,10 +12,18 @@ public abstract class CurrentNode extends Node{
 
 	protected Key successor;
 	protected Key predecessor;
-	protected DhtRoutingTable dhtroads;	//current DHT roads
+	protected DhtRoutingTable nodesroads;	// nodes lookup roads
+	protected DhtRoutingTable ksroads;		// key store roads
+	protected DhtRoutingTable klroads;		// key lookup roads
+	
+	private Map<Key, Value> keys;	// keys stored in this node
+	// key storage range : [predecessor, successor]
 	
 	public CurrentNode(){
-		dhtroads = new DhtRoutingTable();
+		nodesroads = new DhtRoutingTable();
+		ksroads = new DhtRoutingTable();
+		klroads = new DhtRoutingTable();
+		keys = new TreeMap<>();
 	}
 	
 	/**
@@ -77,5 +87,21 @@ public abstract class CurrentNode extends Node{
 		System.out.println("Predecessor : " + id.toString());
 	}
 	
+	/**
+	 * Store key into the DHT
+	 * @param k key to store
+	 * @param v value with the key
+	 */
+	public void store(Key k, Value v){
+		
+	}
 	
+	/**
+	 * Lookup for key into the DHT
+	 * @param k key
+	 * @return value or null if the key doesn't exist
+	 */
+	public Value lookup(Key k){
+		return null;
+	}
 }

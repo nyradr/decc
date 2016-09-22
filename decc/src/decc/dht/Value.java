@@ -17,8 +17,6 @@ public class Value{
 		sign = s;
 	}
 	
-	public Value(){}
-	
 	/**
 	 * Get the post date
 	 * @return

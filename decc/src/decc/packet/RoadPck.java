@@ -5,7 +5,7 @@ package decc.packet;
  * @author nyradr
  *
  */
-public class RoadPck implements IPacket{
+public class RoadPck extends Packet{
 	
 	private String comid;	// COMID
 	private String ori;		// origin peer

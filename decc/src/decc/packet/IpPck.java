@@ -8,7 +8,7 @@ import decc.dht.Key;
  * and the DHT key of the sender
  * @author nyradr
  */
-public class IpPck implements IPacket{
+public class IpPck extends Packet{
 
 	private String ip;
 	private Key id;

@@ -57,7 +57,6 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	
 	private ComsList coms;				//current communications
 	private RoadList roads;				//current roads
-	private DhtRoutingTable dhtroads;	//current DHT roads
 	
 	private IDeccUser userclb;			//callback for the user
 	private Options options;			//decc options
@@ -82,7 +81,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		this.pairs = new TreeMap<String, Node>();
 		this.coms = new ComsList();
 		this.roads = new RoadList();
-		this.dhtroads = new DhtRoutingTable();
+		this.nodesroads = new DhtRoutingTable();
 		
 		this.userclb = clb;
 		
@@ -133,12 +132,14 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			
 			// empty ring -> join ring
 			if(predecessor == null && successor.equals(key)){
-				dhtroads.put(key, key);
 				
 				// init finger table
 				for(int k = m; k >= 1; k--){
-					BigInteger finger = super.finger(k);
-					peer.sendFindSuccessor(new FindSucPck(Key.load(finger)));
+					Key finger = Key.load(super.finger(k));
+					
+					nodesroads.put(finger, key);
+					
+					peer.sendFindSuccessor(new FindSucPck(finger));
 				}
 			}
 			
@@ -609,7 +610,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		}else{
 			// not found
 			
-			dhtroads.put(pck.getKey(), p.getKey());
+			nodesroads.put(pck.getKey(), p.getKey());
 			n.sendFindSuccessor(pck);
 		}
 		
@@ -622,7 +623,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 */
 	private void onFindSuccessorR(Node p, String args){
 		FindSucRPck pck = new FindSucRPck(args);
-		Set<Key> ks = dhtroads.get(pck.getKey());
+		Set<Key> ks = nodesroads.get(pck.getKey());
 		
 		if(ks.contains(key)){
 			// reached we find our successor
@@ -643,9 +644,12 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 				
 				if(nsuc.getKey().equals(suc)){
 					// immediate successor
-					successor = nsuc.getKey();
-					nsuc.sendStabilize();
-					System.out.println("Successor : " + successor.toString());
+					if(!successor.equals(nsuc.getKey())){
+						successor = nsuc.getKey();
+						nsuc.sendNotify(new NotifyPck(key));
+						nsuc.sendStabilize();
+						System.out.println("Successor : " + successor.toString());
+					}
 				}else
 					System.out.println("Finger found : " + nsuc.getKey().toString());
 			}
@@ -719,7 +723,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 */
 	public void stabilize(){
 		Node suc = getNodeWithKey(successor);
-		suc.sendStabilize();
+		
+		if(suc != null)
+			if(!suc.equals(key))
+				suc.sendStabilize();
 	}
 	
 	@Override
@@ -727,8 +734,9 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		BigInteger finger = super.finger(k);
 		BigInteger matching = null;
 		
-		// find the most valid node matching finger[k]
-		
+		/* Look through all connected peers the most valid
+		 * peer matching finger[k]
+		*/
 		for(String nip : pairs.keySet()){
 			Node n = pairs.get(nip);
 			

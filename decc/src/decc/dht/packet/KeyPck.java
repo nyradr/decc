@@ -1,13 +1,13 @@
 package decc.dht.packet;
 
 import decc.dht.Key;
-import decc.packet.IPacket;
+import decc.packet.Packet;
 
 /**
  * Packet that contain a DHT key
  * @author nyradr
  */
-abstract class KeyPck implements IPacket{
+abstract class KeyPck extends Packet{
 	
 	protected Key key;
 	

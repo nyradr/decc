@@ -13,7 +13,7 @@ import decc.netw.Peer;
 import decc.packet.EroutedPck;
 import decc.packet.IpPck;
 import decc.packet.MessPck;
-import decc.packet.IPacket;
+import decc.packet.Packet;
 import decc.packet.RoadPck;
 
 /**
@@ -73,7 +73,7 @@ class Node extends decc.dht.Node{
 	 * @param cmd command
 	 * @param pck packet
 	 */
-	private void send(Command cmd, IPacket pck){
+	private void send(Command cmd, Packet pck){
 		send(cmd.toString() + pck.getPck());
 	}
 	

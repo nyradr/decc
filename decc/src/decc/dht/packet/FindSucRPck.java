@@ -1,13 +1,13 @@
 package decc.dht.packet;
 
 import decc.dht.Key;
-import decc.packet.IPacket;
+import decc.packet.Packet;
 
 /**
  * answer packet for find successor request
  * @author nyradr
  */
-public class FindSucRPck implements IPacket{
+public class FindSucRPck extends Packet{
 
 	private Key key;
 	private String ip;
