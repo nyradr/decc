@@ -27,6 +27,10 @@ abstract class ValuePck extends Packet {
 	 */
 	protected ValuePck(){}
 	
+	/**
+	 * Get the value
+	 * @return
+	 */
 	public Value getVal(){
 		return val;
 	}
@@ -40,20 +44,25 @@ abstract class ValuePck extends Packet {
 
 	@Override
 	public boolean extract(String args) {
-		// TODO securisation
-		
 		int begin = 0;
 		int end = args.indexOf("\n");
-		Date post = new Date(Date.parse(args.substring(begin, end)));
 		
-		begin = end +1;
-		end = args.indexOf("\n", begin);
-		String value = args.substring(begin, end);
+		if(end > 0){
+			Date post = new Date(Date.parse(args.substring(begin, end)));
 		
-		String sign = args.substring(end +1);
+			begin = end +1;
+			end = args.indexOf("\n", begin);
+			
+			if(end > begin){
+				String value = args.substring(begin, end);
 		
-		val = new Value(post, value, sign);
-		return true;
+				String sign = args.substring(end +1);
+		
+				val = new Value(post, value, sign);
+				return true;
+			}
+		}
+		return false;
 	}
 	
 }
