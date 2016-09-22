@@ -27,6 +27,8 @@ abstract class KeyPck extends Packet{
 		extract(data);
 	}
 	
+	protected KeyPck(){}
+	
 	/**
 	 * Get the stored key
 	 * @return
