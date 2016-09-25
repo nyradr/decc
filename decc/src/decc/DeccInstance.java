@@ -202,23 +202,6 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		
 		return true;
 	}
-
-	@Override
-	public void setname(String name){
-		try{
-			Account n = Account.create(name, Crypto.DEF_RSA_LEN);
-			accman.changeUser(n);
-			
-			Key nk = Key.create(name);
-			if(successor == key){
-				successor = nk;
-				key = nk;
-			}
-			
-		}catch (Exception e){
-			e.printStackTrace();
-		}
-	}
 	
 	@Override
 	public String[] getConnectedHosts(){
@@ -252,9 +235,11 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	public void onNewPeer(Peer p) {
 		if(pairs.size() < options.maxPeers()){
 			Node peer = new Node(p);
+			pairs.put(p.getHostName(), peer);
+			
 			peer.sendIP(key);
 			
-			pairs.put(p.getHostName(), peer);
+			
 			userclb.onNewPeer(p.getHostName());
 			
 		}else{
@@ -745,12 +730,6 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		*/
 		for(String nip : pairs.keySet()){
 			Node n = pairs.get(nip);
-			
-			if(n == null)
-				System.out.println("NULL : n is null");
-			
-			if(n.getKey() == null)
-				System.out.println("NULL : key is null");
 			
 			BigInteger nk = n.getKey().getKey();
 			

@@ -57,12 +57,6 @@ public interface IDecc {
 	public boolean sendTo(String comid, String mess);
 	
 	/**
-	 * Set peer name
-	 * @param name new peer name
-	 */
-	public void setname(String name);
-	
-	/**
 	 * Get the host name of all connected peers.
 	 * @return
 	 */
