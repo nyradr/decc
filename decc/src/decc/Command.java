@@ -24,7 +24,7 @@ enum Command{
 	DFINDSUC	(0x33),		// send find successor request (ID)
 	DFINDSUCR	(0x34),		// answer for find successor (ID, IP)
 	DSTORE		(0x35),		// store key/value in the DHT (KEY, VAL)
-	DSTORER		(0x36),		// notify if the storage success or fail (FLAG)
+	DSTORER		(0x36),		// notify if the storage success or fail (KEY, FLAG)
 	DLOOKUP		(0x37),		// search for key (KEY)
 	DLOOKUPR	(0x38);		// answer a lookup demand (KEY, VAL/NULL)
 	

@@ -26,6 +26,8 @@ import decc.dht.packet.FindSucPck;
 import decc.dht.packet.FindSucRPck;
 import decc.dht.packet.NotifyPck;
 import decc.dht.packet.StabilizeRPck;
+import decc.dht.packet.StorePck;
+import decc.dht.packet.StoreRPck;
 import decc.netw.IListenerClb;
 import decc.netw.IPeerReceive;
 import decc.netw.Listener;
@@ -50,7 +52,6 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	Listener netw;						// network listener
 	private String ip;					// public ip
 	
-	//private String name;				//user name
 	private AccountsManager accman;		// accounts manager
 	
 	private Map<String, Node> pairs;	//list of connected peers
@@ -70,12 +71,11 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @throws NoSuchProviderException 
 	 * @throws NoSuchAlgorithmException 
 	 */
-	public DeccInstance(int port, String name, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
+	public DeccInstance(int port, Account user, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
 		
 		this.options = OptionsBuilder.getDefault();
 		
 		netw = new Listener(this, this, port);
-		Account user = Account.create(name, Crypto.DEF_RSA_LEN);
 		accman = new AccountsManager(user);
 		
 		this.pairs = new TreeMap<String, Node>();
@@ -86,7 +86,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		this.userclb = clb;
 		
 		// create empty DHT ring
-		key = Key.create(name);
+		key = Key.create(user.getName());
 		predecessor = null;
 		successor = key;
 	}
@@ -131,17 +131,8 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			pairs.put(peer.getHostName(), peer);
 			
 			// empty ring -> join ring
-			if(predecessor == null && successor.equals(key)){
-				
-				// init finger table
-				for(int k = m; k >= 1; k--){
-					Key finger = Key.load(super.finger(k));
-					
-					nodesroads.put(finger, key);
-					
-					peer.sendFindSuccessor(new FindSucPck(finger));
-				}
-			}
+			if(predecessor == null && successor.equals(key))
+				initFingerTable(peer);
 			
 			return true;
 		} catch(Exception e){
@@ -260,11 +251,12 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	@Override
 	public void onNewPeer(Peer p) {
 		if(pairs.size() < options.maxPeers()){
-			Node n = new Node(p);
-			n.sendIP(key);
+			Node peer = new Node(p);
+			peer.sendIP(key);
 			
-			pairs.put(p.getHostName(), n);
+			pairs.put(p.getHostName(), peer);
 			userclb.onNewPeer(p.getHostName());
+			
 		}else{
 			try{
 				p.close();
@@ -282,7 +274,6 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		System.out.println("Peer deco : " + p.getHostName());
 		
 		p.close();
-		pairs.remove(p.getHostName());
 		
 		// clean roads passing through this peer
 		// just in case of dirty disconnection without peer cleanup
@@ -304,6 +295,8 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		// DHT check predecessor
 		if(p.getKey() == predecessor)
 			predecessor = null;
+		
+		pairs.remove(p.getHostName());
 	}
 	
 	@Override
@@ -570,6 +563,19 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	/// DHT
 	
 	/**
+	 * Initialize the finger table with initial peer
+	 * @param peer initial peer
+	 */
+	private void initFingerTable(Node peer){
+		for(int k = m; k >= 1; k--){
+			Key finger = Key.load(super.finger(k));
+			
+			nodesroads.put(finger, key);
+			peer.sendFindSuccessor(new FindSucPck(finger));
+		}
+	}
+	
+	/**
 	 * Get the connected node with this key
 	 * @param key key to find
 	 * @return Node or null (if no node with this key)
@@ -740,7 +746,14 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		for(String nip : pairs.keySet()){
 			Node n = pairs.get(nip);
 			
+			if(n == null)
+				System.out.println("NULL : n is null");
+			
+			if(n.getKey() == null)
+				System.out.println("NULL : key is null");
+			
 			BigInteger nk = n.getKey().getKey();
+			
 			
 			if(finger.compareTo(nk) <= 0){
 				if(matching == null || nk.compareTo(matching) < 0)

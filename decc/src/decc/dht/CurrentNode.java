@@ -4,11 +4,14 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.TreeMap;
 
+import decc.dht.ui.IDht;
+import decc.dht.ui.IDhtClb;
+
 /**
  * Current DHT node used by the program
  * @author nyradr
  */
-public abstract class CurrentNode extends Node{
+public abstract class CurrentNode extends Node implements IDht{
 
 	protected Key successor;
 	protected Key predecessor;
@@ -87,21 +90,13 @@ public abstract class CurrentNode extends Node{
 		System.out.println("Predecessor : " + id.toString());
 	}
 	
-	/**
-	 * Store key into the DHT
-	 * @param k key to store
-	 * @param v value with the key
-	 */
-	public void store(Key k, Value v){
+	@Override
+	public void store(IDhtClb clb, Key k, Value v){
 		
 	}
 	
-	/**
-	 * Lookup for key into the DHT
-	 * @param k key
-	 * @return value or null if the key doesn't exist
-	 */
-	public Value lookup(Key k){
-		return null;
+	@Override
+	public void lookup(IDhtClb clb, Key k){
+		
 	}
 }

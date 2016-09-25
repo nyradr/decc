@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
+import decc.accounts.Account;
+import decc.options.Crypto;
 import decc.ui.IDecc;
 import decc.ui.IDeccUser;
 
@@ -23,7 +25,7 @@ public class DeccBuilder {
 	 * @throws NoSuchAlgorithmException 
 	 */
 	public static IDecc getDefault(IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
-		return new DeccInstance(4242, "", clb);
+		return new DeccInstance(4242, Account.create("", Crypto.DEF_RSA_LEN), clb);
 	}
 	
 	/**
@@ -36,7 +38,7 @@ public class DeccBuilder {
 	 * @throws NoSuchProviderException 
 	 * @throws NoSuchAlgorithmException 
 	 */
-	public static IDecc getDecc(int port, String name, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
-		return new DeccInstance(port, name, clb);
+	public static IDecc getDecc(int port, Account acc, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
+		return new DeccInstance(port, acc, clb);
 	}
 }
