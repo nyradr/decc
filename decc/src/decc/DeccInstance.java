@@ -127,7 +127,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			pairs.put(peer.getHostName(), peer);
 			
 			// empty ring -> join ring
-			if(predecessor == null && successor.equals(key))
+			if(isEmptyRing())
 				initFingerTable(peer);
 			
 			return true;
@@ -235,8 +235,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			
 			peer.sendIP(key);
 			
-			
 			userclb.onNewPeer(p.getHostName());
+			
+			if(isEmptyRing())
+				initFingerTable(peer);
 			
 		}else{
 			try{
@@ -550,9 +552,6 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	private void initFingerTable(Node peer){
 		for(int k = m; k >= 1; k--){
 			Key finger = Key.load(super.finger(k));
-			
-			if(k == 1)
-				System.out.println("THE SUCCESSOR IS : " + finger);
 			
 			nodesroads.put(finger, key);
 			peer.sendFindSuccessor(new FindSucPck(finger));
