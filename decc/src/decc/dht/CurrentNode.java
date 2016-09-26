@@ -22,11 +22,25 @@ public abstract class CurrentNode extends Node implements IDht{
 	private Map<Key, Value> keys;	// keys stored in this node
 	// key storage range : [predecessor, successor]
 	
-	public CurrentNode(){
+	public CurrentNode(Key k){
 		nodesroads = new DhtRoutingTable();
 		ksroads = new DhtRoutingTable();
 		klroads = new DhtRoutingTable();
 		keys = new TreeMap<>();
+		
+		// create empty DHT ring
+		key = k;
+		predecessor = null;
+		successor = key;
+	}
+	
+	/**
+	 * Return true if the DHT ring is empty
+	 * The ring is considered empty if the successor is the node key and the predecessor is null
+	 * @return
+	 */
+	public boolean isEmptyRing(){
+		return successor.equals(key) && predecessor == null;
 	}
 	
 	/**

@@ -11,7 +11,6 @@ import java.security.Signature;
 import java.util.Base64;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openpgp.PGPException;
 
 import decc.options.Crypto;
 

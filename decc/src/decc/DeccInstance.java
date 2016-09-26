@@ -72,6 +72,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @throws NoSuchAlgorithmException 
 	 */
 	public DeccInstance(int port, Account user, IDeccUser clb) throws IOException, NoSuchAlgorithmException, NoSuchProviderException{
+		super(Key.create(user.getName()));
 		
 		this.options = OptionsBuilder.getDefault();
 		
@@ -84,11 +85,6 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		this.nodesroads = new DhtRoutingTable();
 		
 		this.userclb = clb;
-		
-		// create empty DHT ring
-		key = Key.create(user.getName());
-		predecessor = null;
-		successor = key;
 	}
 	
 	/// IDecc
@@ -555,6 +551,9 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		for(int k = m; k >= 1; k--){
 			Key finger = Key.load(super.finger(k));
 			
+			if(k == 1)
+				System.out.println("THE SUCCESSOR IS : " + finger);
+			
 			nodesroads.put(finger, key);
 			peer.sendFindSuccessor(new FindSucPck(finger));
 		}
@@ -590,19 +589,22 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		Key k = findSuccessor(pck.getKey());
 		Node n = getNodeWithKey(k);
 		
-		if(k.equals(successor)){
+		if(k.equals(successor)){ // successor found
+			// potential successor IP
 			String ip = "";
 			if(n == null)
 				ip = this.ip;
 			else
 				ip = n.getHostName();
-		
+			
 			p.sendFindSuccessorRep(new FindSucRPck(pck.getKey(), ip));
 		}else{
-			// not found
-			
-			nodesroads.put(pck.getKey(), p.getKey());
-			n.sendFindSuccessor(pck);
+			// no successor found
+			if(n != p){
+				nodesroads.put(pck.getKey(), p.getKey());
+				n.sendFindSuccessor(pck);
+			}else	// but no valid node to forward the query, I'm the successor
+				n.sendFindSuccessorRep(new FindSucRPck(pck.getKey(), ip));
 		}
 		
 	}
@@ -624,16 +626,16 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			Node nsuc = pairs.get(pck.getIp());
 			
 			// connect to node (if not already connected)
-			if(nsuc == null){
+			if(nsuc == null && !pck.getIp().equals(ip)){
 				if(connect(pck.getIp()))
 					nsuc = getNodeWithKey(pck.getKey());
 			}
 			
 			// successor node found
 			if(nsuc != null){
-				Key suc = Key.load(finger(1));
+				Key suc = Key.load(super.finger(1));
 				
-				if(nsuc.getKey().equals(suc)){
+				if(pck.getKey().equals(suc)){
 					// immediate successor
 					if(!successor.equals(nsuc.getKey())){
 						successor = nsuc.getKey();

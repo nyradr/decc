@@ -82,8 +82,7 @@ public class DhtRoutingTable {
 	 * @return
 	 */
 	public Set<Key> get(Key k){
-		clean();
-		
+		//clean();
 		Map<Key, Long> rts = routes.get(k);
 		Set<Key> ks = null;
 		if(rts != null)	// key not found security
