@@ -49,6 +49,7 @@ public class DhtRoutingTable {
 	
 	/**
 	 * Clean routing table from out dated elements
+	 * FIXME concurrent access exception
 	 */
 	private void clean(){
 		long ts = Instant.now().getEpochSecond();
@@ -63,7 +64,7 @@ public class DhtRoutingTable {
 	 * @param v Node key
 	 */
 	public void put(Key k, Key v){
-		clean();
+		//clean();
 		
 		Map<Key, Long> rts = routes.get(k);
 		

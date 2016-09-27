@@ -588,7 +588,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		Key k = findSuccessor(pck.getKey());
 		Node n = getNodeWithKey(k);
 		
-		if(k.equals(successor)){ // successor found
+		if(k.equals(successor) || k.equals(key)){ // successor found
 			// potential successor IP
 			String ip = "";
 			if(n == null)
