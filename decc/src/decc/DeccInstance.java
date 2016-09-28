@@ -9,7 +9,6 @@ import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +38,7 @@ import decc.packet.EroutedPck;
 import decc.packet.IpPck;
 import decc.packet.MessPck;
 import decc.packet.RoadPck;
+import decc.packet.Packet;
 import decc.ui.ICom;
 import decc.ui.IDecc;
 import decc.ui.IDeccUser;
@@ -603,7 +603,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 				nodesroads.put(pck.getKey(), p.getKey());
 				n.sendFindSuccessor(pck);
 			}else	// but no valid node to forward the query, I'm the successor
-				n.sendFindSuccessorRep(new FindSucRPck(pck.getKey(), ip));
+				p.sendFindSuccessorRep(new FindSucRPck(pck.getKey(), ip));
 		}
 		
 	}
@@ -707,6 +707,64 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		NotifyPck pck = new NotifyPck(args);
 		
 		notify(pck.getKey());
+	}
+	
+	/**
+	 * When a store request is received
+	 * @param p
+	 * @param args
+	 */
+	private void onStore(Node p, String args){
+		StorePck pck = new StorePck(args);
+		
+		Key k = findSuccessor(pck.getKey());
+		Node n = getNodeWithKey(k);
+		
+		if(k.equals(successor) || k.equals(key)){
+			char flag =
+					(tryStore(pck.getKey(), pck.getVal()))?
+							StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
+			
+			p.sendStoreRep(new StoreRPck(pck.getKey(), flag));
+		}else{
+			if(n != p){
+				ksroads.put(pck.getKey(), p.getKey());
+				n.sendStore(pck);
+			}else{
+				char flag =
+						(tryStore(pck.getKey(), pck.getVal()))?
+								StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
+				
+				p.sendStoreRep(new StoreRPck(pck.getKey(), flag));
+			}
+		}
+	}
+	
+	/**
+	 * When a store answer is received
+	 * @param p
+	 * @param args
+	 */
+	public void onStoreRep(Node p, String args){
+		
+	}
+	
+	/**
+	 * When a lookup command is received
+	 * @param p
+	 * @param args
+	 */
+	public void onLookup(Node p, String args){
+		
+	}
+	
+	/**
+	 * When a lookup answer is received
+	 * @param p
+	 * @param args
+	 */
+	public void onLookupRep(Node p, String args){
+		
 	}
 	
 	/**

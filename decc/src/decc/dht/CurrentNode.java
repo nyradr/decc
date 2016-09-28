@@ -22,7 +22,7 @@ public abstract class CurrentNode extends Node implements IDht{
 	private Map<Key, Value> keys;	// keys stored in this node
 	// key storage range : [predecessor, successor]
 	
-	public CurrentNode(Key k){
+	protected CurrentNode(Key k){
 		nodesroads = new DhtRoutingTable();
 		ksroads = new DhtRoutingTable();
 		klroads = new DhtRoutingTable();
@@ -39,7 +39,7 @@ public abstract class CurrentNode extends Node implements IDht{
 	 * The ring is considered empty if the successor is the node key and the predecessor is null
 	 * @return
 	 */
-	public boolean isEmptyRing(){
+	protected boolean isEmptyRing(){
 		return successor.equals(key) && predecessor == null;
 	}
 	
@@ -80,7 +80,7 @@ public abstract class CurrentNode extends Node implements IDht{
 	/**
 	 * Find the successor of key
 	 */
-	public Key findSuccessor(Key id) {
+	protected Key findSuccessor(Key id) {
 		Key suc;
 		
 		if(	id.getKey().compareTo(key.getKey()) > 0
@@ -96,12 +96,36 @@ public abstract class CurrentNode extends Node implements IDht{
 	/**
 	 * id may be or predecessor
 	 */
-	public void notify(Key id) {
+	protected void notify(Key id) {
 		if (predecessor == null ||
 			(id.getKey().compareTo(predecessor.getKey()) > 0 && id.getKey().compareTo(key.getKey()) < 0))
 			predecessor = id;
 		
 		System.out.println("Predecessor : " + id.toString());
+	}
+	
+	/**
+	 * Try to store a key/value pair into the local key storage
+	 * If the key is already stored the new value must be
+	 * verified by the old key
+	 * @param k key to store
+	 * @param v value to store
+	 * @return true is the key/value pair is succefuly stored
+	 */
+	protected boolean tryStore(Key k, Value v){
+		boolean suc = true;
+		
+		if(keys.containsKey(k)){
+			// test consistency
+			// TODO signature verification
+			
+			keys.put(k, v);
+		}else{
+			// no keys already stored
+			keys.put(k, v);
+		}
+		
+		return suc;
 	}
 	
 	@Override
