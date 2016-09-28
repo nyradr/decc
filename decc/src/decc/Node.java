@@ -1,14 +1,16 @@
 package decc;
 
 import java.io.IOException;
-import java.net.Socket;
 
 import decc.dht.Key;
 import decc.dht.packet.FindSucPck;
 import decc.dht.packet.FindSucRPck;
+import decc.dht.packet.LookupPck;
+import decc.dht.packet.LookupRPck;
 import decc.dht.packet.NotifyPck;
 import decc.dht.packet.StabilizeRPck;
-import decc.netw.IPeerReceive;
+import decc.dht.packet.StorePck;
+import decc.dht.packet.StoreRPck;
 import decc.netw.Peer;
 import decc.packet.EroutedPck;
 import decc.packet.IpPck;
@@ -190,5 +192,37 @@ class Node extends decc.dht.Node{
 	 */
 	public void sendNotify(NotifyPck pck){
 		send(Command.DNOTIF, pck);
+	}
+	
+	/**
+	 * Send store request
+	 * @param pck
+	 */
+	public void sendStore(StorePck pck){
+		send(Command.DSTORE, pck);
+	}
+	
+	/**
+	 * Send store answer
+	 * @param pck
+	 */
+	public void sendStoreRep(StoreRPck pck){
+		send(Command.DSTORER, pck);
+	}
+	
+	/**
+	 * Send lookup request
+	 * @param pck
+	 */
+	public void sendLookup(LookupPck pck){
+		send(Command.DLOOKUP, pck);
+	}
+	
+	/**
+	 * Send lookup answer
+	 * @param pck
+	 */
+	public void sendLoockupRep(LookupRPck pck){
+		send(Command.DLOOKUPR, pck);
 	}
 }
