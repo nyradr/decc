@@ -20,9 +20,9 @@ public abstract class CurrentNode extends Node implements IDht{
 	protected DhtRoutingTable nodesroads;	// nodes lookup roads
 	protected DhtRoutingTable ksroads;		// key store roads
 	protected DhtRoutingTable klroads;		// key lookup roads
+	protected Map<Key, IDhtClb> reqclbs;		// request callbacks
 	
-	protected Timer stabilizeTimer;			// timer for frequent stabilize method
-	private Map<Key, IDhtClb> reqclbs;		// request callbacks
+	private Timer stabilizeTimer;			// timer for frequent stabilize method
 	
 	private Map<Key, Value> keys;	// keys stored in this node
 	// key storage range : [predecessor, successor]
@@ -149,12 +149,8 @@ public abstract class CurrentNode extends Node implements IDht{
 	public abstract void stabilize();
 	
 	@Override
-	public void store(IDhtClb clb, Key k, Value v){
-		
-	}
+	public abstract void store(IDhtClb clb, Key k, Value v);
 	
 	@Override
-	public void lookup(IDhtClb clb, Key k){
-		
-	}
+	public abstract void lookup(IDhtClb clb, Key k);
 }

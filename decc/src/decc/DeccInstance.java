@@ -21,12 +21,14 @@ import decc.accounts.Contact;
 import decc.dht.CurrentNode;
 import decc.dht.DhtRoutingTable;
 import decc.dht.Key;
+import decc.dht.Value;
 import decc.dht.packet.FindSucPck;
 import decc.dht.packet.FindSucRPck;
 import decc.dht.packet.NotifyPck;
 import decc.dht.packet.StabilizeRPck;
 import decc.dht.packet.StorePck;
 import decc.dht.packet.StoreRPck;
+import decc.dht.ui.IDhtClb;
 import decc.netw.IListenerClb;
 import decc.netw.IPeerReceive;
 import decc.netw.Listener;
@@ -746,7 +748,24 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @param args
 	 */
 	public void onStoreRep(Node p, String args){
+		StoreRPck pck = new StoreRPck(args);
+		Set<Key> ks = ksroads.get(pck.getKey());
 		
+		if(ks.contains(key)){
+			ks.remove(key);
+			
+			IDhtClb clb = reqclbs.get(pck.getKey());
+			if(clb != null)
+				clb.onStore(pck.getKey(), pck.getFlag());
+		}
+		
+		for(Key k : ks){
+			ks.remove(k);
+			Node n = getNodeWithKey(k);
+			
+			if(n != null)
+				n.sendStoreRep(pck);
+		}
 	}
 	
 	/**
@@ -773,6 +792,16 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		
 		if(suc != null && ! suc.equals(key))
 			suc.sendStabilize();
+	}
+	
+	@Override
+	public void store(IDhtClb clb, Key k, Value v){
+		
+	}
+	
+	@Override
+	public void lookup(IDhtClb clb, Key k){
+		
 	}
 	
 	@Override
