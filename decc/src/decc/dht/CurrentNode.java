@@ -2,6 +2,8 @@ package decc.dht;
 
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
 
 import decc.dht.ui.IDht;
@@ -19,6 +21,9 @@ public abstract class CurrentNode extends Node implements IDht{
 	protected DhtRoutingTable ksroads;		// key store roads
 	protected DhtRoutingTable klroads;		// key lookup roads
 	
+	protected Timer stabilizeTimer;			// timer for frequent stabilize method
+	private Map<Key, IDhtClb> reqclbs;		// request callbacks
+	
 	private Map<Key, Value> keys;	// keys stored in this node
 	// key storage range : [predecessor, successor]
 	
@@ -32,6 +37,15 @@ public abstract class CurrentNode extends Node implements IDht{
 		key = k;
 		predecessor = null;
 		successor = key;
+		
+		// network stabilization
+		stabilizeTimer = new Timer();
+		stabilizeTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				stabilize();
+			}
+		}, 60000, 60000);
 	}
 	
 	/**
@@ -127,6 +141,12 @@ public abstract class CurrentNode extends Node implements IDht{
 		
 		return suc;
 	}
+	
+	/**
+	 * Stabilize the network
+	 * Ask to the successor about its predecessor and verify consistency
+	 */
+	public abstract void stabilize();
 	
 	@Override
 	public void store(IDhtClb clb, Key k, Value v){

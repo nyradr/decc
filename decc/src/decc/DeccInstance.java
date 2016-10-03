@@ -767,16 +767,12 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		
 	}
 	
-	/**
-	 * Stabilize the network
-	 * Ask to the successor about its predecessor and verify consistency
-	 */
+	@Override
 	public void stabilize(){
 		Node suc = getNodeWithKey(successor);
 		
-		if(suc != null)
-			if(!suc.equals(key))
-				suc.sendStabilize();
+		if(suc != null && ! suc.equals(key))
+			suc.sendStabilize();
 	}
 	
 	@Override
