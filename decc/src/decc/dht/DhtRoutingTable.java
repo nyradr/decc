@@ -1,8 +1,6 @@
 package decc.dht;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -17,6 +15,7 @@ public class DhtRoutingTable {
 	
 	private Map<Key, Map<Key, Long>> routes;
 	private long lastClear;
+	private boolean mutex;
 	
 	public DhtRoutingTable(){
 		routes = new TreeMap<>();
@@ -49,12 +48,15 @@ public class DhtRoutingTable {
 	
 	/**
 	 * Clean routing table from out dated elements
-	 * FIXME concurrent access exception
 	 */
 	private void clean(){
-		long ts = Instant.now().getEpochSecond();
-		applyDelay(ts - lastClear);
-		lastClear = ts;
+		if(!mutex){
+			mutex = true;
+			long ts = Instant.now().getEpochSecond();
+			applyDelay(ts - lastClear);
+			lastClear = ts;
+			mutex = false;
+		}
 	}
 	
 	/**
@@ -64,7 +66,7 @@ public class DhtRoutingTable {
 	 * @param v Node key
 	 */
 	public void put(Key k, Key v){
-		//clean();
+		clean();
 		
 		Map<Key, Long> rts = routes.get(k);
 		
