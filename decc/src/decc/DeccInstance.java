@@ -24,6 +24,8 @@ import decc.dht.Key;
 import decc.dht.Value;
 import decc.dht.packet.FindSucPck;
 import decc.dht.packet.FindSucRPck;
+import decc.dht.packet.LookupPck;
+import decc.dht.packet.LookupRPck;
 import decc.dht.packet.NotifyPck;
 import decc.dht.packet.StabilizeRPck;
 import decc.dht.packet.StorePck;
@@ -774,7 +776,23 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @param args
 	 */
 	public void onLookup(Node p, String args){
+		LookupPck pck = new LookupPck(args);
 		
+		Key k = findSuccessor(pck.getKey());
+		Node n = getNodeWithKey(k);
+		
+		if(k.equals(successor) || k.equals(key)){
+			Value val = tryLookup(pck.getKey());
+			p.sendLoockupRep(new LookupRPck(pck.getKey(), val));
+		}else{
+			if(n != p){
+				klroads.put(pck.getKey(), p.getKey());
+				n.sendLookup(pck);
+			}else{
+				Value val = tryLookup(pck.getKey());
+				p.sendLoockupRep(new LookupRPck(pck.getKey(), val));
+			}
+		}
 	}
 	
 	/**
@@ -783,7 +801,24 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @param args
 	 */
 	public void onLookupRep(Node p, String args){
+		LookupRPck pck = new LookupRPck(args);
+		Set<Key> ks = klroads.get(pck.getKey());
 		
+		if(ks.contains(key)){
+			ks.remove(key);
+			
+			IDhtClb clb = reqclbs.get(pck.getKey());
+			if(clb != null)
+				clb.onLookup(pck.getKey(), pck.getVal());
+		}
+		
+		for(Key k : ks){
+			ks.remove(k);
+			Node n = getNodeWithKey(k);
+			
+			if(n != null)
+				n.sendLoockupRep(pck);
+		}
 	}
 	
 	@Override

@@ -143,6 +143,15 @@ public abstract class CurrentNode extends Node implements IDht{
 	}
 	
 	/**
+	 * Try to get a key locally stored
+	 * @param k key to look for
+	 * @return the value stored or NULL
+	 */
+	protected Value tryLookup(Key k){
+		return keys.get(k);
+	}
+	
+	/**
 	 * Stabilize the network
 	 * Ask to the successor about its predecessor and verify consistency
 	 */
