@@ -831,12 +831,32 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	
 	@Override
 	public void store(IDhtClb clb, Key k, Value v){
+		Key suc = findSuccessor(k);
+		Node n = getNodeWithKey(suc);
 		
+		if(suc.equals(successor) || suc.equals(key)){
+			clb.onStore(k, tryStoreToFlag(k, v));
+		}else{
+			reqclbs.put(k, clb);
+			ksroads.put(k, key);
+			
+			n.sendStore(new StorePck(k, v));
+		}
 	}
 	
 	@Override
 	public void lookup(IDhtClb clb, Key k){
+		Key suc = findSuccessor(k);
+		Node n = getNodeWithKey(suc);
 		
+		if(suc.equals(successor) || suc.equals(key)){
+			clb.onLookup(k, tryLookup(k));
+		}else{
+			reqclbs.put(k, clb);
+			klroads.put(k, key);
+			
+			n.sendLookup(new LookupPck(k));
+		}
 	}
 	
 	@Override

@@ -6,6 +6,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
 
+import decc.dht.packet.StoreRPck;
 import decc.dht.ui.IDht;
 import decc.dht.ui.IDhtClb;
 
@@ -124,7 +125,7 @@ public abstract class CurrentNode extends Node implements IDht{
 	 * verified by the old key
 	 * @param k key to store
 	 * @param v value to store
-	 * @return true is the key/value pair is succefuly stored
+	 * @return true is the key/value pair is successfully stored
 	 */
 	protected boolean tryStore(Key k, Value v){
 		boolean suc = true;
@@ -140,6 +141,17 @@ public abstract class CurrentNode extends Node implements IDht{
 		}
 		
 		return suc;
+	}
+	
+	/**
+	 * Execute tryStore and return the result as a StoreRPck flag
+	 * @param k key to store
+	 * @param v value to store
+	 * @return FLAG_SUCCESS if the pair is successfully stored FLAG_FAILURE ortherwise
+	 */
+	protected char tryStoreToFlag(Key k, Value v){
+		return (tryStore(k, v))?
+				StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
 	}
 	
 	/**
