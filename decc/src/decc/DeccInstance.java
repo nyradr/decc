@@ -336,6 +336,22 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			onStabilizeRep(p, args);
 			break;
 			
+		case DSTORE:
+			onStore(p, args);
+			break;
+			
+		case DSTORER:
+			onStoreRep(p, args);
+			break;
+			
+		case DLOOKUP:
+			onLookup(p, args);
+			break;
+			
+		case DLOOKUPR:
+			onLookupRep(p, args);
+			break;
+			
 		default:
 			System.out.println("Unknow packet receveid from " + p.getHostName() + " with " + m);
 			break;
