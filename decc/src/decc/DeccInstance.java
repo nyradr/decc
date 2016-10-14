@@ -773,8 +773,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			ks.remove(key);
 			
 			IDhtClb clb = reqclbs.get(pck.getKey());
-			if(clb != null)
+			if(clb != null){
 				clb.onStore(pck.getKey(), pck.getFlag());
+				System.out.println("Store : " + pck.getFlag() + " : " + pck.getKey());
+			}
 		}
 		
 		for(Key k : ks){
@@ -824,8 +826,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			ks.remove(key);
 			
 			IDhtClb clb = reqclbs.get(pck.getKey());
-			if(clb != null)
+			if(clb != null){
 				clb.onLookup(pck.getKey(), pck.getVal());
+				System.out.println("Lookup : " + pck.getKey() + "\n\t" + pck.getVal());
+			}
 		}
 		
 		for(Key k : ks){

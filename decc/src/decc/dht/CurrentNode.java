@@ -46,7 +46,7 @@ public abstract class CurrentNode extends Node implements IDht{
 			public void run() {
 				stabilize();
 			}
-		}, 60000, 60000);
+		}, 6000, 6000); // lower delay for test TODO put back to 60000
 	}
 	
 	/**
