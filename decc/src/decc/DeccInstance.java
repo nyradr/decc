@@ -260,6 +260,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		Node p = pairs.get(peer.getHostName());
 		System.out.println("Peer deco : " + p.getHostName());
 		
+		pairs.remove(p.getHostName());
 		p.close();
 		
 		// clean roads passing through this peer
@@ -279,11 +280,20 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		
 		userclb.onPeerDeco(p.getHostName());
 		
-		// DHT check predecessor
+		// DHT stabilization
 		if(p.getKey() == predecessor)
 			predecessor = null;
 		
-		pairs.remove(p.getHostName());
+		if(p.getKey().equals(successor)){
+			Key suc = findSuccessor(key);
+			Node n = getNodeWithKey(suc);
+			if(n == null)
+				successor = key;
+			else{
+				nodesroads.put(key, key);
+				n.sendFindSuccessor(new FindSucPck(key));
+			}
+		}
 	}
 	
 	@Override
@@ -350,6 +360,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			
 		case DLOOKUPR:
 			onLookupRep(p, args);
+			break;
+			
+		case DREPLICA:
+			onReplica(p, args);
 			break;
 			
 		default:
@@ -739,11 +753,12 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		
 		Key k = findSuccessor(pck.getKey());
 		Node n = getNodeWithKey(k);
+		char flag = (char) -1;
 		
 		if(k.equals(successor) || k.equals(key)){
-			char flag =
-					(tryStore(pck.getKey(), pck.getVal()))?
-							StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
+			flag =
+				(tryStore(pck.getKey(), pck.getVal()))?
+					StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
 			
 			p.sendStoreRep(new StoreRPck(pck.getKey(), flag));
 		}else{
@@ -751,11 +766,24 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 				ksroads.put(pck.getKey(), p.getKey());
 				n.sendStore(pck);
 			}else{
-				char flag =
-						(tryStore(pck.getKey(), pck.getVal()))?
-								StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
+				flag =
+					(tryStore(pck.getKey(), pck.getVal()))?
+						StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
 				
 				p.sendStoreRep(new StoreRPck(pck.getKey(), flag));
+			}
+		}
+		
+		// Send a replica to predecessor and successor
+		if(flag != -1){
+			if(successor != key){
+				Node suc = getNodeWithKey(successor);
+				suc.sendReplica(pck);
+			}
+			
+			if(predecessor != null){
+				Node pred = getNodeWithKey(predecessor);
+				pred.sendReplica(pck);
 			}
 		}
 	}
@@ -793,7 +821,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @param p
 	 * @param args
 	 */
-	public void onLookup(Node p, String args){
+	private void onLookup(Node p, String args){
 		LookupPck pck = new LookupPck(args);
 		
 		Key k = findSuccessor(pck.getKey());
@@ -818,7 +846,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 	 * @param p
 	 * @param args
 	 */
-	public void onLookupRep(Node p, String args){
+	private void onLookupRep(Node p, String args){
 		LookupRPck pck = new LookupRPck(args);
 		Set<Key> ks = klroads.get(pck.getKey());
 		
@@ -839,6 +867,16 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 			if(n != null)
 				n.sendLoockupRep(pck);
 		}
+	}
+	
+	/**
+	 * When a replica message is received
+	 * @param p
+	 * @param args
+	 */
+	private void onReplica(Node p, String args){
+		StorePck pck = new StorePck(args);
+		tryStore(pck.getKey(), pck.getVal());
 	}
 	
 	@Override

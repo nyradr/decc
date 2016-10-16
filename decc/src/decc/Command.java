@@ -26,7 +26,8 @@ enum Command{
 	DSTORE		(0x35),		// store key/value in the DHT (KEY, VAL)
 	DSTORER		(0x36),		// notify if the storage success or fail (KEY, FLAG)
 	DLOOKUP		(0x37),		// search for key (KEY)
-	DLOOKUPR	(0x38);		// answer a lookup demand (KEY, VAL/NULL)
+	DLOOKUPR	(0x38),		// answer a lookup demand (KEY, VAL/NULL)
+	DREPLICA	(0x39);		// replication of a key (KEY, VAL)
 	
 	private final char cmd;
 	

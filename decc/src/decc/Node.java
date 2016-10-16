@@ -225,4 +225,8 @@ class Node extends decc.dht.Node{
 	public void sendLoockupRep(LookupRPck pck){
 		send(Command.DLOOKUPR, pck);
 	}
+
+	public void sendReplica(StorePck pck){
+		send(Command.DREPLICA, pck);
+	}
 }
