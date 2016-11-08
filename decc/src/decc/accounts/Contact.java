@@ -14,6 +14,7 @@ public class Contact {
 	
 	protected String name;
 	protected PublicKey publickey;
+	protected ContactStatus status;
 	
 	/**
 	 * Create contact
@@ -23,6 +24,7 @@ public class Contact {
 	public Contact(String name, PublicKey pk){
 		this.name = name;
 		publickey = pk;
+		status = ContactStatus.UNVERIFIED;
 	}
 	
 	/**
@@ -40,6 +42,15 @@ public class Contact {
 	public PublicKey getPublic(){
 		return publickey;
 	}
+	
+	/**
+	 * Get the contact status
+	 * @return
+	 */
+	public ContactStatus getStatus(){
+		return status;
+	}
+	
 	
 	/**
 	 * Verify a string signed for this account

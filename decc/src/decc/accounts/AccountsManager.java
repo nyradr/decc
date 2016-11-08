@@ -5,6 +5,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import decc.dht.ui.IDht;
+
 /**
  * Manage all DECC accounts and account contacts
  * @author nyradr
@@ -13,6 +15,7 @@ public class AccountsManager {
 	
 	private Account user;
 	private Map<String, Contact> contacts;
+	private IDht dht;
 	
 	/**
 	 * Create account manager from account
@@ -20,6 +23,7 @@ public class AccountsManager {
 	 */
 	public AccountsManager(Account iacc){
 		user = iacc;
+		this.dht = dht;
 		
 		contacts = new TreeMap<>();
 	}
@@ -35,6 +39,7 @@ public class AccountsManager {
 	/**
 	 * Change the actual user
 	 * @param acc
+	 * @deprecated no account change allowed
 	 */
 	public void changeUser(Account acc){
 		user = acc;

@@ -31,6 +31,7 @@ public class Account extends Contact{
 	 */
 	public Account(String name, PublicKey pubk, PrivateKey prvk){
 		super(name, pubk);
+		status = ContactStatus.TRUSTED;
 		
 		privatekey = prvk;
 	}
