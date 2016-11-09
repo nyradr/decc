@@ -4,6 +4,12 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.util.Base64;
 
+import org.bouncycastle.util.encoders.Base64Encoder;
+
+import decc.dht.Key;
+import decc.dht.Value;
+import decc.dht.ui.IDht;
+import decc.dht.ui.IDhtClb;
 import decc.options.Crypto;
 
 /**
@@ -12,9 +18,37 @@ import decc.options.Crypto;
  */
 public class Contact {
 	
+	/**
+	 * DHT lookup request handler
+	 * @author voyez
+	 *
+	 */
+	private class PkVerifClb implements IDhtClb{
+
+		@Override // NOT USED
+		public void onStore(Key k, char flag) {}
+
+		@Override
+		public void onLookup(Key k, Value v) {
+			// verification of the public key with the DHT public key
+			// TODO : more advanced verification
+			
+			Base64.Encoder b64 = Base64.getEncoder();
+			
+			String pkct = b64.encodeToString(publickey.getEncoded());
+			
+			if(pkct.equals(v.getVal()))
+				status = ContactStatus.VERIFIED;
+			else
+				status = ContactStatus.INVALID;
+		}
+		
+	}
+	
 	protected String name;
 	protected PublicKey publickey;
 	protected ContactStatus status;
+	private PkVerifClb dhtclb;
 	
 	/**
 	 * Create contact
@@ -25,6 +59,7 @@ public class Contact {
 		this.name = name;
 		publickey = pk;
 		status = ContactStatus.UNVERIFIED;
+		dhtclb = new PkVerifClb();
 	}
 	
 	/**
@@ -51,6 +86,14 @@ public class Contact {
 		return status;
 	}
 	
+	/**
+	 * Verify the account public key
+	 * @param dht DHT instance
+	 */
+	public void verifyPublicKey(IDht dht){
+		status = ContactStatus.VERIFICATION;
+		dht.lookup(dhtclb, Key.create(name));
+	}
 	
 	/**
 	 * Verify a string signed for this account
