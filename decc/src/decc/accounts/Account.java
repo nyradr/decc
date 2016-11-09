@@ -12,6 +12,7 @@ import java.util.Base64;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import decc.accounts.ui.ContactStatus;
 import decc.options.Crypto;
 
 /**

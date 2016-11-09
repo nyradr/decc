@@ -1,4 +1,4 @@
-package decc.accounts;
+package decc.accounts.ui;
 
 /* Public key verification status
  */

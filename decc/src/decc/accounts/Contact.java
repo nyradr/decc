@@ -6,6 +6,8 @@ import java.util.Base64;
 
 import org.bouncycastle.util.encoders.Base64Encoder;
 
+import decc.accounts.ui.ContactStatus;
+import decc.accounts.ui.IContact;
 import decc.dht.Key;
 import decc.dht.Value;
 import decc.dht.ui.IDht;
@@ -16,11 +18,11 @@ import decc.options.Crypto;
  * Represent a DECC contact
  * @author nyradr
  */
-public class Contact {
+public class Contact implements IContact{
 	
 	/**
 	 * DHT lookup request handler
-	 * @author voyez
+	 * @author nyradr
 	 *
 	 */
 	private class PkVerifClb implements IDhtClb{
@@ -62,12 +64,14 @@ public class Contact {
 		dhtclb = new PkVerifClb();
 	}
 	
-	/**
-	 * get contact name
-	 * @return
-	 */
+	@Override
 	public String getName(){
 		return name;
+	}
+	
+	@Override
+	public ContactStatus getStatus(){
+		return status;
 	}
 	
 	/**
@@ -78,13 +82,6 @@ public class Contact {
 		return publickey;
 	}
 	
-	/**
-	 * Get the contact status
-	 * @return
-	 */
-	public ContactStatus getStatus(){
-		return status;
-	}
 	
 	/**
 	 * Verify the account public key

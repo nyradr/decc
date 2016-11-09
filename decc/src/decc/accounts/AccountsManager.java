@@ -37,15 +37,6 @@ public class AccountsManager {
 	}
 	
 	/**
-	 * Change the actual user
-	 * @param acc
-	 * @deprecated no account change allowed
-	 */
-	public void changeUser(Account acc){
-		user = acc;
-	}
-	
-	/**
 	 * Add contact to the contact list
 	 * @param c contact
 	 */
@@ -70,7 +61,7 @@ public class AccountsManager {
 	}
 	
 	/**
-	 * Get a specific contact
+	 * Get a specific contact (from the local contact list)
 	 * @param name
 	 * @return
 	 */
@@ -79,7 +70,7 @@ public class AccountsManager {
 	}
 	
 	/**
-	 * Search for all contact matching name
+	 * Search for all contact matching name (from the local contact list)
 	 * @param name name to search
 	 * @return
 	 */

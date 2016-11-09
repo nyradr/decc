@@ -557,7 +557,8 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 				
 				// communication found, add to contact
 				if(comComid != null){
-					Contact c = new Contact(comsComid.get(0).getTarget(), pub);	
+					Contact c = new Contact(comsComid.get(0).getTarget(), pub);
+					c.verifyPublicKey(this);
 					accman.addContact(c);
 				}
 				
