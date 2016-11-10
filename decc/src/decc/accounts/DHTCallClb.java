@@ -4,18 +4,16 @@ import decc.dht.Key;
 import decc.dht.Value;
 import decc.dht.ui.IDhtClb;
 
-class DHTCallClb implements IDhtClb{
+/**
+ * DHT callback base class for Account and Contact
+ * @author nyradr
+ */
+abstract class DHTCallClb implements IDhtClb{
 
 	@Override
-	public void onStore(Key k, char flag) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void onStore(Key k, char flag) {}
 
 	@Override
-	public void onLookup(Key k, Value v) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void onLookup(Key k, Value v) {}
 
 }

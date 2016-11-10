@@ -1,5 +1,7 @@
 package decc.ui;
 
+import decc.accounts.ui.IContact;
+
 /**
  * Interface for getting informations on a communication
  * @author nyradr
@@ -13,10 +15,10 @@ public interface ICom {
 	public String getComid();
 	
 	/**
-	 * Get the target name
+	 * Get the contact of the communication
 	 * @return
 	 */
-	public String getTargetName();
+	public IContact getContact();
 	
 	/**
 	 * Send message through this communication

@@ -1,16 +1,13 @@
 package decc;
 
-import java.security.Key;
-import java.security.PrivateKey;
 import java.util.Base64;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import javax.crypto.Cipher;
 
 import decc.accounts.AccountsManager;
 import decc.accounts.Contact;
+import decc.accounts.ui.IContact;
 import decc.options.Crypto;
-import decc.packet.EroutedPck;
 import decc.packet.MessPck;
 import decc.ui.ICom;
 import decc.ui.IComClb;
@@ -24,6 +21,7 @@ class Communication implements ICom{
 	
 	private String comid;	// communication comid
 	private String target;	// name of the target
+	private Contact contact; // contact
 	
 	private AccountsManager accman; // account manager
 	
@@ -95,17 +93,27 @@ class Communication implements ICom{
 		linked = l;
 	}
 	
+	/**
+	 * Get the target name
+	 * @return
+	 */
 	public String getTarget(){
 		return target;
 	}
 	
-	@Override
-	public String getTargetName() {
-		return target;
+	/**
+	 * Get the contact
+	 * @return
+	 */
+	public IContact getContact() {
+		return contact;
 	}
 	
-	public Contact getTargetContact(){
-		return accman.getContact(target);
+	/**
+	 * Tells the communication there is a contact for the target of this communication
+	 */
+	public void contactAdded(){
+		contact = accman.getContact(target);
 	}
 	
 	/**
@@ -168,7 +176,7 @@ class Communication implements ICom{
 		}else
 			clear = mess;
 		
-		boolean verified = accman.getContact(target).verifySign(clear, sign);
+		boolean verified = contact.verifySign(clear, sign);
 		
 		clb.onMess(comid, clear, verified);
 	}

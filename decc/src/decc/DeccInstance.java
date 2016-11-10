@@ -560,6 +560,7 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 					Contact c = new Contact(comsComid.get(0).getTarget(), pub);
 					c.verifyPublicKey(this);
 					accman.addContact(c);
+					comComid.contactAdded();
 				}
 				
 				comComid.startDh();
