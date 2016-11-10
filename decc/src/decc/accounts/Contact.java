@@ -25,11 +25,7 @@ public class Contact implements IContact{
 	 * @author nyradr
 	 *
 	 */
-	private class PkVerifClb implements IDhtClb{
-
-		@Override // NOT USED
-		public void onStore(Key k, char flag) {}
-
+	private class PkVerifClb extends DHTCallClb{
 		@Override
 		public void onLookup(Key k, Value v) {
 			// verification of the public key with the DHT public key
@@ -44,13 +40,12 @@ public class Contact implements IContact{
 			else
 				status = ContactStatus.INVALID;
 		}
-		
 	}
 	
 	protected String name;
 	protected PublicKey publickey;
 	protected ContactStatus status;
-	private PkVerifClb dhtclb;
+	protected DHTCallClb dhtclb;
 	
 	/**
 	 * Create contact

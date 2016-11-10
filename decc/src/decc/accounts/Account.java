@@ -9,10 +9,14 @@ import java.security.PublicKey;
 import java.security.Security;
 import java.security.Signature;
 import java.util.Base64;
+import java.util.Date;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import decc.accounts.ui.ContactStatus;
+import decc.dht.Key;
+import decc.dht.Value;
+import decc.dht.ui.IDht;
 import decc.options.Crypto;
 
 /**
@@ -20,6 +24,16 @@ import decc.options.Crypto;
  * @author nyradr
  */
 public class Account extends Contact{
+	/**
+	 * Callback produced when the key is stored in the DHT
+	 * @author nyradr
+	 */
+	private class PkStoreClb extends DHTCallClb{
+		@Override
+		public void onStore(Key k, char flag){
+			
+		}
+	}
 	
 	private PrivateKey privatekey;
 	
@@ -33,8 +47,8 @@ public class Account extends Contact{
 	public Account(String name, PublicKey pubk, PrivateKey prvk){
 		super(name, pubk);
 		status = ContactStatus.TRUSTED;
-		
 		privatekey = prvk;
+		dhtclb = new PkStoreClb();
 	}
 	
 	/**
@@ -51,6 +65,17 @@ public class Account extends Contact{
 	 */
 	public PrivateKey getPrivate(){
 		return privatekey;
+	}
+	
+	/**
+	 * Store the public the in the DHT
+	 * @param dht DHT instance
+	 */
+	public void storePublic(IDht dht){
+		String pkstr = Base64.getEncoder().encodeToString(publickey.getEncoded());
+		String pksign = generateSign(pkstr);
+		
+		dht.store(dhtclb, Key.create(name), new Value(new Date(), pkstr, pksign));
 	}
 	
 	/**
