@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import decc.dht.packet.StoreRPck;
 import decc.dht.ui.IDht;
 import decc.dht.ui.IDhtClb;
+import decc.dht.ui.StoreFlags;
 
 /**
  * Current DHT node used by the program
@@ -149,9 +150,9 @@ public abstract class CurrentNode extends Node implements IDht{
 	 * @param v value to store
 	 * @return FLAG_SUCCESS if the pair is successfully stored FLAG_FAILURE ortherwise
 	 */
-	protected char tryStoreToFlag(Key k, Value v){
+	protected StoreFlags tryStoreToFlag(Key k, Value v){
 		return (tryStore(k, v))?
-				StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
+				StoreFlags.SUCCESS : StoreFlags.FAILURE;
 	}
 	
 	/**

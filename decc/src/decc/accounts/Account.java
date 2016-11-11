@@ -16,7 +16,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import decc.accounts.ui.ContactStatus;
 import decc.dht.Key;
 import decc.dht.Value;
+import decc.dht.packet.StoreRPck;
 import decc.dht.ui.IDht;
+import decc.dht.ui.StoreFlags;
 import decc.options.Crypto;
 
 /**
@@ -30,8 +32,11 @@ public class Account extends Contact{
 	 */
 	private class PkStoreClb extends DHTCallClb{
 		@Override
-		public void onStore(Key k, char flag){
-			
+		public void onStore(Key k, StoreFlags flag){
+			if(flag == StoreFlags.FAILURE)
+				System.out.println("Unable to store the account public key");
+			else
+				System.out.println("Account public key stored successfully");
 		}
 	}
 	

@@ -15,7 +15,7 @@ public interface IDhtClb {
 	 * @param k key stored
 	 * @param flag error code
 	 */
-	public void onStore(Key k, char flag);
+	public void onStore(Key k, StoreFlags flag);
 	
 	/**
 	 * When a lookup request is finished

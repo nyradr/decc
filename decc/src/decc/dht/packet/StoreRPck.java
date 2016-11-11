@@ -1,20 +1,19 @@
 package decc.dht.packet;
 
 import decc.dht.Key;
+import decc.dht.ui.StoreFlags;
 
 /**
  * Answer packet for a store request
  * @author nyradr
  */
 public class StoreRPck extends KeyPck{
-
-	public static final char FLAG_SUCCESS = 1;
-	public static final char FLAG_FAILURE = 0;
 	
-	private char flag;
+	private StoreFlags flag;
 	
-	public StoreRPck(Key k, char flag) {
+	public StoreRPck(Key k, StoreFlags flag) {
 		super(k);
+		this.flag = flag;
 	}
 	
 	public StoreRPck(String args){
@@ -22,7 +21,7 @@ public class StoreRPck extends KeyPck{
 		extract(args);
 	}
 	
-	public char getFlag(){
+	public StoreFlags getFlag(){
 		return flag;
 	}
 	
@@ -34,7 +33,7 @@ public class StoreRPck extends KeyPck{
 	@Override
 	public boolean extract(String args){
 		if(args.length() > 1){
-			flag = args.charAt(0);
+			flag = StoreFlags.fromChar((args.charAt(0)));
 			
 			return super.extract(args.substring(1));
 		}

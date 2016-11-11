@@ -31,6 +31,7 @@ import decc.dht.packet.StabilizeRPck;
 import decc.dht.packet.StorePck;
 import decc.dht.packet.StoreRPck;
 import decc.dht.ui.IDhtClb;
+import decc.dht.ui.StoreFlags;
 import decc.netw.IListenerClb;
 import decc.netw.IPeerReceive;
 import decc.netw.Listener;
@@ -755,12 +756,10 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 		
 		Key k = findSuccessor(pck.getKey());
 		Node n = getNodeWithKey(k);
-		char flag = (char) -1;
+		StoreFlags flag = null;
 		
 		if(k.equals(successor) || k.equals(key)){
-			flag =
-				(tryStore(pck.getKey(), pck.getVal()))?
-					StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
+			flag = tryStoreToFlag(pck.getKey(), pck.getVal());
 			
 			p.sendStoreRep(new StoreRPck(pck.getKey(), flag));
 		}else{
@@ -768,16 +767,14 @@ class DeccInstance extends CurrentNode implements IListenerClb, IPeerReceive, ID
 				ksroads.put(pck.getKey(), p.getKey());
 				n.sendStore(pck);
 			}else{
-				flag =
-					(tryStore(pck.getKey(), pck.getVal()))?
-						StoreRPck.FLAG_SUCCESS : StoreRPck.FLAG_FAILURE;
+				flag = tryStoreToFlag(pck.getKey(), pck.getVal());
 				
 				p.sendStoreRep(new StoreRPck(pck.getKey(), flag));
 			}
 		}
 		
 		// Send a replica to predecessor and successor
-		if(flag != -1){
+		if(flag != null){
 			if(successor != key){
 				Node suc = getNodeWithKey(successor);
 				suc.sendReplica(pck);
